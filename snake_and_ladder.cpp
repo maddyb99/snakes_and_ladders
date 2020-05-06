@@ -26,9 +26,9 @@ class player
 	int getpos(){return(position);}
 	void disp(int x, int y)
 	{
-		gotoxy(x,y);
+		gotoxy(x+6,y);
 		cout<<"You got a "<<lastroll<<".";
-		gotoxy(x,y+1);
+		gotoxy(x+3,y+1);
 		cout<<"You are now at "<<position<<".";
 	}
 
@@ -38,9 +38,10 @@ void gamedisp()
 {
 	clrscr();
 	cleardevice();
+	gotoxy(16,1);
 	cout<<"PLAYER 1";
 	line(320,0,320,600);
-	gotoxy(42,wherey());
+	gotoxy(57,1);
 	cout<<"PLAYER 2";
 }
 void endgame(int mode=0)
@@ -60,7 +61,7 @@ void gameplay()
 {
 	char ans,ans2='y';
 	int x[2],check,y,i,pos[2]={0,0},pn;
-	x[0]=1;x[1]=42;
+	x[0]=8;x[1]=49;
 	for(i=0;i>=0;i++){
 	pn=i%2;
 	if(pn==0)
@@ -73,9 +74,9 @@ void gameplay()
 		y=wherey();
 		if(pos[0]>pos[1])
 		{
-			gotoxy(50,1);
-			cout<<"  ";
-			gotoxy(9,1);
+			gotoxy(65,1);
+			cout<<" ";
+			gotoxy(24,1);
 			cout<<"*";
 		}
 		else if(pos[0]<pos[1])
@@ -88,9 +89,9 @@ void gameplay()
 				endgame(2);
 				break;
 			}
-			gotoxy(9,1);
-			cout<<"  ";
-			gotoxy(50,1);
+			gotoxy(24,1);
+			cout<<" ";
+			gotoxy(65,1);
 			cout<<"*";
 		}
 		gotoxy(x[pn],y+2);
@@ -120,7 +121,7 @@ void gameplay()
 	}
 	else
 	{
-		gotoxy(x[pn],wherey());
+		gotoxy(x[pn]+1,wherey());
 		cout<<"Do you want to exit?";
 		ans2=getch();
 		cout<<ans2<<"\n";
