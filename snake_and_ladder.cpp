@@ -308,9 +308,7 @@ void gamestart()
 	clrscr();
 	cleardevice();
 	int *x,*y,option=0,end=0,mx,my,i;
-	do{
-		setbkcolor(random(14));
-	}while(getbkcolor()==4||getbkcolor()==6||getbkcolor()==8);
+	setbkcolor(7);
 	settextstyle(4,HORIZ_DIR,6);
 	setcolor(15);
 	setfillstyle(SOLID_FILL,1);
@@ -320,7 +318,7 @@ void gamestart()
 	x=new int [2];
 	x[0]=textheight("S")*2;
 	settextstyle(0,HORIZ_DIR,1);
-	outtextxy((getmaxx()-textwidth("(V:3.0.0)"))/2,x[0],"(V:3.1.3)");
+	outtextxy((getmaxx()-textwidth("(V:3.0.0)"))/2,x[0],"(V:3.1.4)");
 	setcolor(14);
 	outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
 	setcolor(2);
@@ -375,19 +373,19 @@ void gamestart()
 		}
 		switch(end)
 		{
-			case 's':
-			case 'S':
-			case '2':option++;
-				if(option>4)
-					option=0;
+			case 0:end=getch();
+				if(end==80)
+				{	option++;
+					if(option>4)
+						option=0;
+				}
+				else if(end==72)
+				{
+					option--;
+					if(option<0)
+						option=4;
+				}
 				break;
-			case 'w':
-			case 'W':
-			case '8':option--;
-				if(option<0)
-					option=4;
-				break;
-			
 		}
 	}while(end!=13&&end!='5');
 	button(x[1]-4,y[option]-(textheight("G")/2),x[1]+textwidth("options")+4,y[option]+(textheight("A")*1.4),-1);
@@ -649,6 +647,9 @@ void gamedisp(int mode=0,int sval=0,int eval=0)
 	}
 	else
 	{
+		sound(250);
+		delay(250);
+		nosound();
 		x=170;y=340;
 		ch[2]=NULL;
 		setcolor(getbkcolor());
