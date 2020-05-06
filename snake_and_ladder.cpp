@@ -243,6 +243,28 @@ void main()
 	}
 }
 
+/*void buttons(int*x,int*y,int*x2,int*y2,int mode=0)
+{
+	if (mode==-1)
+	{	setcolor(getbkcolor());
+		rectangle(*x-4,*y-(textheight("A")/2),*x2+5,*y2+1+(textheight("A")/2));
+		rectangle(*x-4,*y-(textheight("A")/2),*x2+4,*y2+(textheight("A")/2));
+	}
+	else if(mode==0)
+	{
+		setcolor(2);
+		rectangle(*x-4,*y-(textheight("A")/2),*x2+5,*y2+1+(textheight("A")/2));
+		setcolor(8);
+		rectangle(*x-4,*y-(textheight("A")/2),*x2+4,*y2+(textheight("A")/2));
+	}
+	else
+	{
+		setcolor(2);
+		rectangle(*x-3,*y+1-(textheight("A")/2),*x2+4,*y2+(textheight("A")/2));
+		setcolor(8);
+		rectangle(*x-4,*y-(textheight("A")/2),*x2+4,*y2+(textheight("A")/2));
+	}
+} */
 int checksnakeladder(int pos)
 {
 	for(int i=0;i<3;i++)
@@ -273,7 +295,7 @@ void gamestart()
 	x=new int [2];
 	x[0]=textheight("S")*1.9;
 	settextstyle(0,HORIZ_DIR,1);
-	outtextxy((getmaxx()-textwidth("(V:3.0.0)"))/2,x[0],"(V:3.1.0)");
+	outtextxy((getmaxx()-textwidth("(V:3.0.0)"))/2,x[0],"(V:3.1.1)");
 	setcolor(14);
 	outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
 	setcolor(2);
@@ -295,10 +317,7 @@ void gamestart()
 	do
 	{
 		//setfillstyle(EMPTY_FILL,8);
-		setcolor(8);
-		rectangle(x[1]-4,y[option]-(textheight("P")/2),x[1]+textwidth("options")+5,y[option]+(textheight("P")*1.25)+3);
-		setcolor(2);
-		rectangle(x[1]-4,y[option]-(textheight("P")/2),x[1]+textwidth("options")+4,y[option]+(textheight("P")*1.25)+2);
+		button(x[1],y[option],x[1]+textwidth("options"),y[option]+textheight("A"));
 		setcolor(14);
 		switch(option)
 		{
@@ -314,9 +333,7 @@ void gamestart()
 				break;
 		}
 		end=getch();
-		setcolor(getbkcolor());
-		rectangle(x[1]-4,y[option]-(textheight("P")/2),x[1]+textwidth("options")+5,y[option]+(textheight("P")*1.25)+3);
-		rectangle(x[1]-4,y[option]-(textheight("P")/2),x[1]+textwidth("options")+4,(y[option]+textheight("p")*1.25)+2);
+		button(x[1],y[option],x[1]+textwidth("options"),y[option]+textheight("A"),-1);
 		setcolor(2);
 		switch(option)
 		{
@@ -348,9 +365,7 @@ void gamestart()
 		}
 	}while(end!=13&&end!='5');
 	setcolor(8);
-	rectangle(x[1]-3,y[option]-(textheight("P")/2)+1,x[1]+textwidth("options")+4,y[option]+(textheight("P")*1.25)+2);
-	setcolor(2);
-	rectangle(x[1]-4,y[option]-(textheight("P")/2),x[1]+textwidth("options")+4,y[option]+(textheight("P")*1.25)+2);
+	rectangle(x[1]-4,y[option]-(textheight("P")/2),x[1]+textwidth("options")+4,y[option]+(textheight("P")*1.25));
 	setcolor(14);
 	switch(option)
 	{
@@ -556,7 +571,7 @@ void gamedisp(int mode=0,int sval=0,int eval=0)
 		{
 			setfillstyle(SOLID_FILL,15);
 			setcolor(getbkcolor());
-			bar(x-10,y+20,x+22,y-12);
+			bar3d(x-10,y+20,x+22,y-12,0,0);
 			sl=checksnakeladder(i);
 			if(sl>0)
 				setcolor(2);
@@ -860,6 +875,7 @@ void gameend(int mode,int pl)
 	settextstyle(0,HORIZ_DIR,1);
 	setcolor(14);
 	outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
+	setbkcolor(p[pl].color);
 	switch(mode)
 	{
 		case 1: cout<<"'"<<p[pl].plname<<"' ended the game.";
