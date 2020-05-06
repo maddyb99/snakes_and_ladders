@@ -318,7 +318,7 @@ void gamestart()
 	x=new int [2];
 	x[0]=textheight("S")*2;
 	settextstyle(0,HORIZ_DIR,1);
-	outtextxy((getmaxx()-textwidth("(V:3.0.0)"))/2,x[0],"(V:3.1.4)");
+	outtextxy((getmaxx()-textwidth("(V:3.0.0)"))/2,x[0],"(V:3.1.5)");
 	setcolor(14);
 	outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
 	setcolor(2);
@@ -626,9 +626,10 @@ void gamedisp(int mode=0,int sval=0,int eval=0)
 		outtextxy(2,75,"Ladders are at:");
 		outtextxy(2,175,"Snakes are at:");
 		settextstyle(DEFAULT_FONT,HORIZ_DIR,2);
-		setcolor(p[0].color);
+		setcolor(15);
+		//setcolor(p[0].color);
 		outtextxy(2,350,p[0].plname);
-		setcolor(p[1].color);
+		//setcolor(p[1].color);
 		outtextxy(getmaxx()-textwidth(p[1].plname),350,p[1].plname);
 		settextstyle(DEFAULT_FONT,HORIZ_DIR,1);
 		y=7,x=2;
@@ -652,7 +653,7 @@ void gamedisp(int mode=0,int sval=0,int eval=0)
 		nosound();
 		x=170;y=340;
 		ch[2]=NULL;
-		setcolor(getbkcolor());
+		setcolor(0);
 		settextstyle(0,HORIZ_DIR,1);
 		for(i=1;i<101;i++)
 		{
@@ -684,7 +685,7 @@ void gamedisp(int mode=0,int sval=0,int eval=0)
 						setfillstyle(SOLID_FILL,p[!(mode-1)].color);
 					}
 					else
-					       setcolor(getbkcolor());
+					       setcolor(0);
 					bar(x-9,y+19,x+21,y-11);
 					if(i==100)
 						outtextxy(x-4,y,"100");
@@ -757,12 +758,60 @@ void gameplay()
 	ans[1]=NULL;
 	int i,pn,y=400,*poly,x[2]={3,640},no=1,j,pos;
 	setfillstyle(SOLID_FILL,0);
-	poly=new int[3];
+	//poly=new int[3];
 	for(i=0;i>=0;i++)
 	{
 		pn=i%2;
+		setbkcolor(p[pn].color);
 		setcolor(getbkcolor());
-		setfillstyle(SOLID_FILL,getbkcolor());
+		//setcolor(p[!pn].color);
+		setfillstyle(SOLID_FILL,p[pn].color);
+		if(!no)
+		{
+			if(!pn)
+			{
+				poly[0]=370;
+				poly[4]=x[!pn];
+			}
+			else
+			{
+				poly[0]=269;
+				poly[4]=x[!pn];
+			}
+			poly[1]=391;
+			poly[2]=poly[0];
+			poly[3]=480;
+			poly[5]=poly[3];
+			poly[6]=poly[4];
+			poly[7]=poly[1];
+			poly[8]=poly[0];
+			poly[9]=poly[1];
+			fillpoly(5,poly);
+		}
+		else
+		{
+			no=1;
+			if(pn)
+			{
+				poly[0]=370;
+				poly[4]=x[pn];
+			}
+			else
+			{
+				poly[0]=269;
+				poly[4]=x[pn];
+			}
+			poly[1]=391;
+			poly[2]=poly[0];
+			poly[3]=480;
+			poly[5]=poly[3];
+			poly[6]=poly[4];
+			poly[7]=poly[1];
+			poly[8]=poly[0];
+			poly[9]=poly[1];
+			fillpoly(5,poly);
+		}
+		setfillstyle(SOLID_FILL,p[pn].color);
 		if(no)
 		{
 			if(!pn)
@@ -823,6 +872,7 @@ void gameplay()
 		poly[8]=poly[0];
 		poly[9]=poly[1];
 		fillpoly(5,poly);
+		delete poly;
 		setcolor(15);
 		if(p[0].getpos()>p[1].getpos())
 		{
