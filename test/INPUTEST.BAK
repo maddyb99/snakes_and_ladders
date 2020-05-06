@@ -1,0 +1,56 @@
+#include<iostream.h>
+#include<conio.h>
+#include<graphics.h>
+void disp(int);
+void main()
+{
+	int gdriver=DETECT,gmode;
+	initgraph(&gdriver,&gmode,"");
+	/*char ch,plname[9];
+	int i=0;
+	plname[9]=NULL;
+	do
+	{
+		ch=disp();
+		switch(ch)
+		{
+
+		i++;
+	}while(ch!=13);
+	getch();*/
+	disp(0);
+	getch();
+	disp(1);
+	getch();
+}
+void disp(int p)
+{
+
+	int *poly;
+	setcolor(YELLOW);
+	if(!p)
+	{
+		poly=new int[3];
+		settextstyle(0,HORIZ_DIR,3);
+		poly[0]=(getmaxx()-textwidth("ABCDEFGHIJ"))/2;
+		poly[1]=(getmaxy()/2)-(textheight("A")*2);
+		poly[2]=(getmaxx()+textwidth("ABCDEFGHIJ"))/2;
+		poly[3]=(getmaxy()/2)-(textheight("A"));
+		bar3d(poly[0],poly[1],poly[2],poly[3],0,0);
+		settextstyle(0,HORIZ_DIR,1);
+		outtextxy(poly[0],poly[1]-textheight("A"),"Enter name of player 1:");
+		delete poly;
+	}
+	else
+	{
+		settextstyle(0,HORIZ_DIR,3);
+		poly[0]=(getmaxx()-textwidth("ABCDEFGHIJ"))/2;
+		poly[1]=(getmaxy()/2)+(textheight("A"));
+		poly[2]=(getmaxx()+textwidth("ABCDEFGHIJ"))/2;
+		poly[3]=(getmaxy()/2)+(textheight("A")*2);
+		bar3d(poly[0],poly[1],poly[2],poly[3],0,0);
+		settextstyle(0,HORIZ_DIR,1);
+		outtextxy(poly[0],poly[1]-textheight("A"),"Enter name of player 2:");
+		delete poly;
+	}
+}
