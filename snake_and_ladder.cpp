@@ -318,7 +318,7 @@ void gamestart()
 	x=new int [2];
 	x[0]=textheight("S")*2;
 	settextstyle(0,HORIZ_DIR,1);
-	outtextxy((getmaxx()-textwidth("(V:3.0.0)"))/2,x[0],"(V:3.1.5)");
+	outtextxy((getmaxx()-textwidth("(V:3.0.0)"))/2,x[0],"(V:3.1.6á)");
 	setcolor(14);
 	outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
 	setcolor(2);
@@ -437,7 +437,7 @@ int gameinput(int pnumber)
 	settextstyle(0,HORIZ_DIR,1);
 	setcolor(14);
 	outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
-	setfillstyle(SOLID_FILL,2);
+	setfillstyle(SOLID_FILL,12);
 	settextstyle(0,HORIZ_DIR,3);
 	if(!pnumber)
 	{
@@ -446,6 +446,7 @@ int gameinput(int pnumber)
 		poly[2]=(getmaxx()+textwidth("ABCDEFGHI"))/2;
 		poly[3]=(getmaxy()/2)+(textheight("A")*2.4);
 		bar3d(poly[0],poly[1],poly[2],poly[3],0,0);
+		//setcolor(p[!pnumber].color);
 		poly[0]=(getmaxx()-textwidth("ABCDEFGHI"))/2;
 		poly[1]=(getmaxy()/2)-(textheight("A")*2.4);
 		poly[2]=(getmaxx()+textwidth("ABCDEFGHI"))/2;
@@ -459,7 +460,7 @@ int gameinput(int pnumber)
 		poly[3]=(getmaxy()/2)+(textheight("A")*2.4);
 
 	}
-	setfillstyle(SOLID_FILL,10);
+	setfillstyle(SOLID_FILL,9);
 	do
 	{
 		setcolor(14);
@@ -475,7 +476,7 @@ int gameinput(int pnumber)
 		}
 		else
 		{
-			setcolor(getbkcolor());
+			setcolor(7);
 			settextstyle(0,HORIZ_DIR,3);
 			outtextxy(poly[0]+(poly[2]-poly[0]-textwidth(p[pnumber].plname))/2,(poly[1]+(textheight("A")*0.2)),p[pnumber].plname);
 		}
@@ -502,7 +503,7 @@ int gameinput(int pnumber)
 					i=8;
 				}
 				setcolor(14);
-				setfillstyle(SOLID_FILL,2);
+				setfillstyle(SOLID_FILL,9);
 				bar3d(poly[0],poly[1],poly[2],poly[3],0,0);
 				settextstyle(0,HORIZ_DIR,3);
 				outtextxy(poly[0]+(poly[2]-poly[0]-textwidth(p[pnumber].plname))/2,(poly[1]+(textheight("A")*0.2)),p[pnumber].plname);
