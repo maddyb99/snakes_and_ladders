@@ -9,8 +9,7 @@ void gameend(int,int);
 void gameplay();
 void makeladder();
 void makesnake();
-int checkladder(int*);
-int checksnake(int*);
+int checksnakeladder(int);
 void gamedisp();
 void help();
 int gameinput(int);
@@ -18,52 +17,80 @@ void gamestart();
 int ladder[3][2],snakes[3][2];
 class player
 {
-	int position,lastroll,lad,start,snake;
+	int position,lastroll[3],start,sl,sl1;
 
 	public:
 	char plname[9];
 	void reset()
 	{
 		position=0;
-		lastroll=0;
-		lad=0;
-		snake=0;
+		lastroll[3]=0;
+		lastroll[1]=0;
+		lastroll[2]=0;
+		sl=0;
+		sl1=0;
 		start=0;
 		plname[0]=NULL;
 	}
 	int update(int roll)
 	{
-		if(roll==0)
+		if (lastroll[0]==6&&lastroll[1]==6&&lastroll[2]==6)
+		{
+			lastroll[3]=0;
+			lastroll[1]=0;
+			lastroll[2]=0;
+		}
+		else
+		{
+			lastroll[0]=lastroll[1];
+			lastroll[1]=lastroll[2];
+			lastroll[2]=roll;
+		}
+		if(lastroll[2]==0)
 			return(-1);
-		else if((roll==1||roll==6)&&start==0)
+		else if(lastroll[2]==6&&start==0)
+		{
 			start=1;
-		lastroll=roll;
+			lastroll[2]=0;
+			return(0);
+		}
 		if(start==1)
 		{
-			position+=lastroll;
-			lad=0;
-			for(int i=0;i<3;i++)
+			sl=0;
+			sl1=0;
+			if(position+lastroll[2]<=100&&(lastroll[0]!=6||lastroll[1]!=6||lastroll[2]!=6))
 			{
-				if(position==ladder[i][0])
-				{	lad=i+1;
-					position=ladder[i][1];
-					break;
+				if(lastroll[2]==6)
+					return(0);
+				else if(lastroll[1]==6)
+				{	position+=lastroll[2];
+					position+=lastroll[1];
+					lastroll[1]=0;
 				}
-			}
-			snake=0;
-			for(int i=0;i<3;i++)
-			{
-				if(position==snakes[i][0])
-				{	snake=i+1;
-					position=snakes[i][1];
-					break;
+				else if(lastroll[0]==6)
+				{	position+=(lastroll[2]+lastroll[1]+lastroll[0]);
+					//position+=lastroll[1];
+					//position+=lastroll[0];
+					lastroll[1]=0;
 				}
+				else
+					position+=lastroll[2];
+				sl=checksnakeladder(position);
+				if(sl>0)
+					position=ladder[sl-1][1];
+				else if(sl<0)
+					position=snakes[(sl*-1)-1][1];
+				sl1=checksnakeladder(position);
+				if(sl1>0)
+					position=ladder[sl1-1][1];
+				else if(sl1<0)
+					position=snakes[sl1-1][1];
 			}
-			if(lastroll==6)
-				return(0);
-			else
-				return(1);
+			else if(lastroll[2]+position>100&&lastroll[2]==6)
+				lastroll[2]=0;
+
 		}
+		return(1);
 	}
 
 	int getpos()
@@ -74,135 +101,150 @@ class player
 	void disp(int x,int y)
 	{
 		char *temp;
-		temp=new char[3];
-		if(lad==0&&snake==0)
+		temp=new char[4];
+		if(position<100)
 		{
 			temp[2]=NULL;
 			temp[0]=position/10+48;
 			temp[1]=position%10+48;
-			if(x!=getmaxx())
+		}
+		else
+		{
+			temp[3]=NULL;
+			temp[0]='1';
+			temp[1]='0';
+			temp[2]='0';
+		}
+		if(x!=640)
+		{
+			outtextxy(x,y+12,"You are now at ");
+			outtextxy(x+textwidth("You are now at "),y+12,temp);
+		}
+		else
+		{
+			outtextxy(x-textwidth("You are now at ")-textwidth(temp),y+12,"You are now at ");
+			outtextxy(x-textwidth(temp),y+12,temp);
+		}
+		if(lastroll[2]==0&&start==1)
+			temp[0]='6';
+		else
+			temp[0]=lastroll[2]+48;
+		temp[1]=NULL;
+		if(sl==0&&sl1==0)
+		{
+			if(x!=640)
 			{
 
-				if(position<100)
+				/*if(position<100)
 				{
 					outtextxy(x,y+12,"You are now at ");
 					outtextxy(x+textwidth("You are now at "),y+12,temp);
 				}
 				else
 					outtextxy(x,y+12,"You are now at 100!");
+				*/
 				outtextxy(x,y,"You got a ");
-				temp[0]=lastroll+48;
-				temp[1]=NULL;
 				outtextxy(x+textwidth("You got a "),y,temp);
 			}
 			else
 			{
-				if(position<100)
+				/*if(position<100)
 				{
 					outtextxy(x-textwidth("You are now at ")-16,y+12,"You are now at ");
 					outtextxy(x-textwidth(temp),y+12,temp);
 				}
 				else
 					outtextxy(x-textwidth("You are now at 100!"),y+12,"You are now at 100!");
+				*/
 				outtextxy(x-textwidth("You got a")-16,y,"You got a ");
-				temp[0]=lastroll+48;
-				temp[1]=NULL;
+
 				outtextxy(x-textwidth(temp),y,temp);
 			}
 		}
-		else if(lad!=0&&snake==0)
+		else if(sl>0&&sl1==0)
 		{
-			temp[2]=NULL;
-			temp[0]=position/10+48;
-			temp[1]=position%10+48;
 			if(x!=640)
 			{
-				outtextxy(x,y+12,"You are now at ");
+				/*outtextxy(x,y+12,"You are now at ");
 				outtextxy(x+textwidth("You are now at "),y+12,temp);
+				*/
 				outtextxy(x,y,"You got a ");
-				temp[0]=lastroll+48;
-				temp[1]=NULL;
+
 				outtextxy(x+textwidth("You got a "),y,temp);
 				outtextxy(x+textwidth("You got a   "),y,"and Ladder");
-				temp[0]=lad+48;
+				temp[0]=sl+48;
 				outtextxy(x+textwidth("You got a   and Ladder "),y,temp);
 			}
 			else
 			{
-				outtextxy(x-textwidth("You are now at ")-16,y+12,"You are now at ");
+				/*outtextxy(x-textwidth("You are now at ")-16,y+12,"You are now at ");
 				outtextxy(x-textwidth(temp),y+12,temp);
+				*/
 				outtextxy(x-textwidth("You got a   and Ladder  "),y,"You got a ");
-				temp[0]=lastroll+48;
-				temp[1]=NULL;
+
 				outtextxy(x-textwidth(temp)-textwidth(" and Ladder  "),y,temp);
 				outtextxy(x-textwidth("and Ladder  "),y,"and Ladder");
-				temp[0]=lad+48;
+				temp[0]=sl+48;
 				outtextxy(x-textwidth(temp),y,temp);
 			}
 
 		}
-		else if(lad==0&&snake!=0)
+		else if(sl<0&&sl1==0)
 		{
-			temp[2]=NULL;
-			temp[0]=position/10+48;
-			temp[1]=position%10+48;
 			if(x!=640)
 			{
-				outtextxy(x,y+12,"You are now at ");
+				/*outtextxy(x,y+12,"You are now at ");
 				outtextxy(x+textwidth("You are now at "),y+12,temp);
+				*/
 				outtextxy(x,y,"You got a ");
-				temp[0]=lastroll+48;
-				temp[1]=NULL;
+
 				outtextxy(x+textwidth("You got a "),y,temp);
 				outtextxy(x+textwidth("You got a   "),y,"and Snake");
-				temp[0]=snake+48;
+				temp[0]=(sl*-1)+48;
 				outtextxy(x+textwidth("You got a   and Snake "),y,temp);
 			}
 			else
 			{
-				outtextxy(x-textwidth("You are now at ")-16,y+12,"You are now at ");
+				/*outtextxy(x-textwidth("You are now at ")-16,y+12,"You are now at ");
 				outtextxy(x-textwidth(temp),y+12,temp);
+				*/
 				outtextxy(x-textwidth("You got a   and Snake  "),y,"You got a ");
-				temp[0]=lastroll+48;
-				temp[1]=NULL;
+
 				outtextxy(x-textwidth(temp)-textwidth(" and Snake  "),y,temp);
 				outtextxy(x-textwidth("and Snake  "),y,"and Snake");
-				temp[0]=snake+48;
+				temp[0]=(sl*-1)+48;
 				outtextxy(x-textwidth(temp),y,temp);
 			}
 
 		}
-		else
+		else if(sl>0&&sl1<0)
 		{
-			temp[2]=NULL;
-			temp[0]=position/10+48;
-			temp[1]=position%10+48;
 			if(x!=640)
 			{
-				outtextxy(x,y+12,"You are now at ");
+				/*outtextxy(x,y+12,"You are now at ");
 				outtextxy(x+textwidth("You are now at "),y+12,temp);
+				*/
 				outtextxy(x,y,"You got a ");
-				temp[0]=lastroll+48;
-				temp[1]=NULL;
+
 				outtextxy(x+textwidth("You got a "),y,temp);
 				outtextxy(x+textwidth("You got a   "),y,", Ladder   and Snake");
-				temp[0]=lad+48;
+				temp[0]=sl+48;
 				outtextxy(x+textwidth("You got a   , Ladder "),y,temp);
-				temp[0]=snake+48;
+				temp[0]=(sl1*-1)+48;
 				outtextxy(x+textwidth("You got a   , Ladder   and Snake "),y,temp);
 			}
 			else
 			{
-				outtextxy(x-textwidth("You are now at ")-16,y+12,"You are now at ");
+				/*outtextxy(x-textwidth("You are now at ")-16,y+12,"You are now at ");
 				outtextxy(x-textwidth(temp),y+12,temp);
-				outtextxy(x-textwidth("You got a   , Ladder  "),y,"You got a ");
-				temp[0]=lastroll+48;
-				temp[1]=NULL;
+				*/
+				outtextxy(x-textwidth("You got a   , Ladder  and Snake  "),y,"You got a ");
+
 				outtextxy(x-textwidth(temp)-textwidth(" , Ladder  and snake  "),y,temp);
 				outtextxy(x-textwidth(", Ladder  and Snake  "),y,", Ladder  and Snake");
-				temp[0]=lad+48;
-				outtextxy(x-textwidth(temp),y,temp);
-				temp[0]=snake+48;
+				temp[0]=sl+48;
+				outtextxy((x-textwidth(temp)-textwidth("and Snake  ")),y,temp);
+				temp[0]=(sl1*-1)+48;
 				outtextxy(x-textwidth(temp),y,temp);
 			}
 
@@ -218,6 +260,19 @@ void main()
 	int gdriver=DETECT,gmode;
 	initgraph(&gdriver,&gmode,"");
 	randomize();
+	/*ladder[0][0]=18;
+	ladder[0][1]=61;
+	ladder[1][0]=35;
+	ladder[1][1]=69;
+	ladder[2][0]=65;
+	ladder[2][1]=99;
+	snakes[0][0]=58;
+	snakes[0][1]=29;
+	snakes[1][0]=73;
+	snakes[1][1]=12;
+	snakes[2][0]=97;
+	snakes[2][1]=2;
+	*/
 	for(;;)
 	{
 		p[0].reset();
@@ -226,6 +281,24 @@ void main()
 	}
 }
 
+int checksnakeladder(int pos)
+{
+	for(int i=0;i<3;i++)
+	{
+		if(pos==ladder[i][0])
+		{
+			//delete pos;
+			return(i+1);
+		}
+		if(pos==snakes[i][0])
+		{
+			//delete pos;
+			return(-1*(i+1));
+		}
+	}
+	//delete pos;
+	return(0);
+}
 void gamestart()
 {
 	clrscr();
@@ -395,7 +468,7 @@ int gameinput(int pnumber)
 					p[pnumber].plname[i+1]=NULL;
 				}
 				break;
-			case 13:if(i<8&&i>0)
+			case 13:if(0<i&&i<8)
 				{
 					p[pnumber].plname[i]=NULL;
 					i=8;
@@ -464,14 +537,14 @@ void gamedisp()
 	poly[2]=x+330;
 	poly[3]=y+330;
 	setcolor(2);
-	setfillstyle(SOLID_FILL,10);
+	setfillstyle(SOLID_FILL,9);
 	bar3d(poly[0],poly[1],poly[2],poly[3],0,0);
 	poly[0]=x;
 	poly[1]=y;
 	poly[2]=x+320;
 	poly[3]=y+320;
-	setfillstyle(SOLID_FILL,11);
-	//setcolor(getbkcolor());
+	setfillstyle(SOLID_FILL,15);
+	setcolor(getbkcolor());
 	bar3d(poly[0],poly[1],poly[2],poly[3],0,0);
 	delete poly;
 	for(i=1;i<10;i++)
@@ -480,12 +553,21 @@ void gamedisp()
 	}
 	ch[2]=NULL;
 	x=170;y=340;
-	setcolor(getbkcolor());
+	makeladder();
+	makesnake();
 	settextstyle(0,HORIZ_DIR,1);
+	poly=new int;
 	for(i=1;i<101;i++)
 	{
+		poly[0]=checksnakeladder(i);
+		if(poly[0]>0)
+			setcolor(2);
+		else if(poly[0]<0)
+			setcolor(RED);
+		else if(poly[0]==0)
+			setcolor(getbkcolor()-1);
 		if(i==100)
-		outtextxy(x-4,y,"100");
+			outtextxy(x-4,y,"100");
 		else
 		{	ch[0]=i/10+48;
 			ch[1]=i%10+48;
@@ -499,6 +581,7 @@ void gamedisp()
 		x+=xi;
 		delay(50);
 	}
+	delete poly;
 	setcolor(YELLOW);
        //	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,1);
 	outtextxy(2,textheight("C"),"Currently Winning: ");
@@ -507,14 +590,25 @@ void gamedisp()
 	settextstyle(DEFAULT_FONT,HORIZ_DIR,2);
 	outtextxy(2,350,p[0].plname);
 	outtextxy(getmaxx()-textwidth(p[1].plname),350,p[1].plname);
-	makeladder();
 	settextstyle(DEFAULT_FONT,HORIZ_DIR,1);
+	y=7,x=2;
+	for(i=0;i<3;i++,y++)
+	{
+		gotoxy(x,y);
+		cout<<i+1<<") "<<ladder[i][0]<<"-"<<ladder[i][1];
+	}
+	y=13;
+	for(i=0;i<3;i++,y++)
+	{
+		gotoxy(x,y);
+		cout<<i+1<<") "<<snakes[i][0]<<"-"<<snakes[i][1];
+	}
 	gameplay();
 }
 
 void makeladder()
 {
-	int i,y=7,x=2;
+	int i;
 	for(i=0;i<3;i++)
 	{
 		if(i==0)
@@ -522,21 +616,41 @@ void makeladder()
 			do{
 				ladder[i][0]=random(60);
 				ladder[i][1]=random(96);
-			}while(ladder[i][0]<5||ladder[i][1]<=ladder[i][0]+(10-ladder[i][0]%10));
+			}while(ladder[i][0]<5||(ladder[i][1]<=(ladder[i][0]+(10-ladder[i][0]%10))));
 		}
 		else
 		{
 			do{
 			ladder[i][0]=random(60);
 			ladder[i][1]=random(96);
-			}while(ladder[i][1]<=ladder[i][0]+(10-ladder[i][0]%10)||ladder[i][0]<ladder[i-1][0]||ladder[i][1]==ladder[i-1][1]);
+			}while(ladder[i][1]<=ladder[i][0]+(10-ladder[i][0]%10)||ladder[i][0]==ladder[i-1][0]||ladder[i][1]==ladder[i-1][1]);
 		}
 	}
-	for(i=0;i<3;i++,y++)
+}
+
+void makesnake()
+{
+	int i;
+	for (i=0;i<3;i++)
 	{
-		gotoxy(x,y);
-		cout<<i+1<<") "<<ladder[i][0]<<"-"<<ladder[i][1];
+		if(i==0)
+		{
+			do
+			{
+				snakes[i][0]=random(100);
+				snakes[i][1]=random(70);
+			}while(snakes[i][0]<=snakes[i][1]||snakes[i][1]<5);
+		}
+		else
+		{
+			do
+			{
+				snakes[i][0]=random(96);
+				snakes[i][1]=random(70);
+			}while(snakes[i][0]<=snakes[i][1]||snakes[i][1]<5||snakes[i][0]==snakes[i-1][0]||snakes[i][1]==snakes[i-1][1]);
+		}
 	}
+
 }
 
 void gameplay()
