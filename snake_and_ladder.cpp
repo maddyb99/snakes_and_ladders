@@ -2,6 +2,7 @@
 #include<conio.h>
 #include<stdlib.h>
 #include<graphics.h>
+#include<dos.h>
 class player
 {
 	int position, lastroll;
@@ -22,21 +23,25 @@ class player
 			return(1);
 		}
 	}
-	int getpos()
-	{	return(position);
+	int getpos(){return(position);}
+	void disp(int x, int y)
+	{
+		gotoxy(x+6,y);
+		cout<<"You got a "<<lastroll<<".";
+		gotoxy(x+3,y+1);
+		cout<<"You are now at "<<position<<".";
 	}
-	int getlastroll()
-	{return(lastroll);}
+
 };
 player p[2];
 void gamedisp()
 {
 	clrscr();
 	cleardevice();
-	gotoxy(14,1);
+	gotoxy(16,1);
 	cout<<"PLAYER 1";
 	line(320,0,320,600);
-	gotoxy(56,1);
+	gotoxy(57,1);
 	cout<<"PLAYER 2";
 }
 void endgame(int mode=0)
@@ -55,88 +60,85 @@ void endgame(int mode=0)
 void gameplay()
 {
 	char ans,ans2='y';
-	int x[2],check,y;
-	x[0]=8;x[1]=53;
-	for(int i=0;i>=0;i++){
-	if(i%2==0)
+	int x[2],check,y,i,pos[2]={0,0},pn;
+	x[0]=8;x[1]=49;
+	for(i=0;i>=0;i++){
+	pn=i%2;
+	if(pn==0)
 	{
 		if(wherey()+1>23)
 		{	gamedisp();
-			gotoxy(x[i%2],wherey()+2);
-			cout<<"You got a "<<p[i%2].getlastroll();
-			gotoxy(x[i%2],wherey()+1);
-			cout<<"You are now at "<<p[i%2].getpos();
-			gotoxy(x[1],wherey()-1);
-			cout<<"You got a "<<p[1].getlastroll();
-			gotoxy(x[1],wherey()+1);
-			cout<<"You are now at "<<p[1].getpos();
-		       //	gotoxy(x[i%2],wherey()+1);
+			p[pn].disp(x[pn],wherey()+2);
+			p[1].disp(x[1],wherey()-1);
 		}
 		y=wherey();
-		if(p[0].getpos()>p[1].getpos())
+		if(pos[0]>pos[1])
 		{
-			gotoxy(50,1);
-			cout<<"  ";
-			gotoxy(9,1);
+			gotoxy(65,1);
+			cout<<" ";
+			gotoxy(24,1);
 			cout<<"*";
 		}
-		else if(p[0].getpos()<p[1].getpos())
+		else if(pos[0]<pos[1])
 		{
-			gotoxy(9,1);
-			cout<<"  ";
-			gotoxy(50,1);
+			if(pos[1]>=100)
+			{
+				gotoxy(wherex()-4,wherey());
+				cout<<"100!";
+				delay(1000);
+				endgame(2);
+				break;
+			}
+			gotoxy(24,1);
+			cout<<" ";
+			gotoxy(65,1);
 			cout<<"*";
 		}
-		gotoxy(x[i%2],y+2);
+		gotoxy(x[pn],y+2);
 	}
 	else if(i%2!=0)
 	{
 
-		gotoxy(x[i%2],wherey()-2);
-	}
-	if(p[0].getpos()>=100)
-	{
-		endgame(1);
-		break;
-	}
-	else if(p[1].getpos()>=100)
-	{
-		endgame(2);
-		break;
+		if(pos[0]>=100)
+		{
+			gotoxy(wherex()-4,wherey());
+			cout<<"100!";
+			delay(1000);
+			endgame(1);
+			break;
+		}
+		gotoxy(x[pn],wherey()-2);
 	}
 	cout<<"Shall we roll the dice?";
-	cin>>ans;
+	ans=getch();
+	cout<<ans<<"\n";
 	if(ans=='y'||ans=='Y')
 	{
-		//temp=new int;
-		//temp=p2.getpos();
 		do{
-		check=p[i%2].update(random(7));
+		check=p[pn].update(random(7));
 		}while(check==0);
-		gotoxy(x[i%2],wherey());
-		cout<<"You got a "<<p[i%2].getlastroll();
-		gotoxy(x[i%2],wherey()+1);
-		cout<<"You are now at "<<p[i%2].getpos();
-		//delete temp
+		p[pn].disp(x[pn],wherey());
 	}
 	else
 	{
-		gotoxy(x[i%2],wherey());
+		gotoxy(x[pn]+1,wherey());
 		cout<<"Do you want to exit?";
-		cin>>ans2;
+		ans2=getch();
+		cout<<ans2<<"\n";
 		if(ans2=='y'||ans2=='Y')
 		{
 			endgame();
 			break;
 		}
 	}
+	pos[0]=p[0].getpos();
+	pos[1]=p[1].getpos();     // delay(1000);
 	}
 }
 
 
 void main()
 {
-	clrscr();
 	int gmode,gdriver=DETECT;
 	initgraph(&gdriver,&gmode,"");
 	setbkcolor(1);
