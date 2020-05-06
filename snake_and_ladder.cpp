@@ -21,10 +21,9 @@ class player
 			position+=lastroll;
 			lad=checkladder(position);
 			if(lad!=0)
-			{switch(lad){
-			default:
+			{
 				position=ladder[lad-1][1];
-				}}
+			}
 
 		return(1);
 		}
