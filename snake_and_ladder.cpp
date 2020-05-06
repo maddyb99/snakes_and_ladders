@@ -98,6 +98,7 @@ class player
 	void disp(int x,int y)
 	{
 		char *temp;
+		//setcolor(color);
 		temp=new char[4];
 		if(position<100)
 		{
@@ -250,14 +251,7 @@ void rembutton(int x,int y,int x2,int y2,int dep=0)
 	//int col=getcolor();
 	setfillstyle(EMPTY_FILL,0);
 	setcolor(getbkcolor());
-	if(dep!=0)
-	{
-	for(int i=dep;i>0;i--)
-	{
-		bar3d(x,y,x2+i,y2+i,0,0);
-	}
-	}
-	bar3d(x,y,x2,y2,0,0);
+	bar3d(x,y,x2+dep,y2+dep,0,0);
 }
 
 void button(int x,int y,int x2,int y2,int dep=0)
@@ -314,7 +308,9 @@ void gamestart()
 	clrscr();
 	cleardevice();
 	int *x,*y,option=0,end=0,mx,my,i;
-	setbkcolor(7);
+	do{
+		setbkcolor(random(14));
+	}while(getbkcolor()==4||getbkcolor()==6||getbkcolor()==8);
 	settextstyle(4,HORIZ_DIR,6);
 	setcolor(15);
 	setfillstyle(SOLID_FILL,1);
@@ -324,7 +320,7 @@ void gamestart()
 	x=new int [2];
 	x[0]=textheight("S")*2;
 	settextstyle(0,HORIZ_DIR,1);
-	outtextxy((getmaxx()-textwidth("(V:3.0.0)"))/2,x[0],"(V:3.1.2)");
+	outtextxy((getmaxx()-textwidth("(V:3.0.0)"))/2,x[0],"(V:3.1.3)");
 	setcolor(14);
 	outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
 	setcolor(2);
@@ -391,6 +387,7 @@ void gamestart()
 				if(option<0)
 					option=4;
 				break;
+			
 		}
 	}while(end!=13&&end!='5');
 	button(x[1]-4,y[option]-(textheight("G")/2),x[1]+textwidth("options")+4,y[option]+(textheight("A")*1.4),-1);
@@ -903,15 +900,26 @@ void gameend(int mode,int pl)
 	settextstyle(0,HORIZ_DIR,1);
 	setcolor(14);
 	outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
+	int i=0;
 	switch(mode)
 	{
 		case 1: cout<<"'"<<p[pl].plname<<"' ended the game.";
-			break;
-		case 0: cout<<"Game Ended\n'"<<p[pl].plname<<"' Won!";
-			int i=0;
 			do
 			{
-				setbkcolor(p[i%15].color);
+				if(i%2)
+					setbkcolor(LIGHTRED);
+				else
+					setbkcolor(BLUE);
+				i++;
+				delay(500);
+			}while(!kbhit());
+			break;
+		case 0: cout<<"Game Ended\n'"<<p[pl].plname<<"' Won!";
+			do
+			{
+				if(i%10==0)
+					i++;
+				setbkcolor(i%10);
 				i++;
 				delay(500);
 			}while(!kbhit());
