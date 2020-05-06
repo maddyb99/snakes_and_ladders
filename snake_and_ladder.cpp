@@ -22,10 +22,14 @@ class player
 		else
 		{
 			position+=roll;
-			lad=checkladder(position);
-			if(lad!=0)
+			lad=0;
+			for(int i=0;i<3;i++)
 			{
-				position=ladder[lad-1][1];
+				if(position==ladder[i][0])
+				{	lad=i+1;
+					position=ladder[i][1];
+					break;
+				}
 			}
 			lastroll=roll;
 			return(1);
@@ -34,7 +38,8 @@ class player
 	int getpos(){return(position);}
 	void disp(int x,int y)
 	{
-		if(lad==0)
+		if (position!=0)
+		{if(lad==0)
 		{
 			temp[2]=NULL;
 			temp[0]=position/10+48;
@@ -43,29 +48,29 @@ class player
 			{
 				if(position<100)
 				{
-					outtextxy(x,y+24,"You are now at ");
-					outtextxy(x+textwidth("You are now at "),y+24,temp);
+					outtextxy(x,y+12,"You are now at ");
+					outtextxy(x+textwidth("You are now at "),y+12,temp);
 				}
 				else
-					outtextxy(x,y+24,"You are now at 100!");
-				outtextxy(x,y+12,"You got a ");
+					outtextxy(x,y+12,"You are now at 100!");
+				outtextxy(x,y,"You got a ");
 				temp[0]=lastroll+48;
 				temp[1]=NULL;
-				outtextxy(x+textwidth("You got a "),y+12,temp);
+				outtextxy(x+textwidth("You got a "),y,temp);
 			}
 			else
 			{
 				if(position<100)
 				{
-					outtextxy(x-textwidth("You are now at ")-16,y+24,"You are now at ");
-					outtextxy(x-textwidth(temp),y+24,temp);
+					outtextxy(x-textwidth("You are now at ")-16,y+12,"You are now at ");
+					outtextxy(x-textwidth(temp),y+12,temp);
 				}
 				else
-					outtextxy(x-textwidth("You are now at 100!"),y+24,"You are now at 100!");
-				outtextxy(x-textwidth("You got a")-16,y+12,"You got a ");
+					outtextxy(x-textwidth("You are now at 100!"),y+12,"You are now at 100!");
+				outtextxy(x-textwidth("You got a")-16,y,"You got a ");
 				temp[0]=lastroll+48;
 				temp[1]=NULL;
-				outtextxy(x-textwidth(temp),y+12,temp);
+				outtextxy(x-textwidth(temp),y,temp);
 			}
 		}
 		else
@@ -77,41 +82,46 @@ class player
 			{
 				if(position<100)
 				{
-					outtextxy(x,y+24,"You are now at ");
-					outtextxy(x+textwidth("You are now at "),y+24,temp);
+					outtextxy(x,y+12,"You are now at ");
+					outtextxy(x+textwidth("You are now at "),y+12,temp);
 				}
 				else
-					outtextxy(x,y+24,"You are now at 100!");
-				outtextxy(x,y+12,"You got a ");
+					outtextxy(x,y+12,"You are now at 100!");
+				outtextxy(x,y,"You got a ");
 				temp[0]=lastroll+48;
 				temp[1]=NULL;
-				outtextxy(x+textwidth("You got a "),y+12,temp);outtextxy(x+textwidth("You got a "),y+12,temp);
-				outtextxy(x+textwidth("You got a   "),y+12,"and Ladder");
+				outtextxy(x+textwidth("You got a "),y,temp);
+				outtextxy(x+textwidth("You got a   "),y,"and Ladder");
 				temp[0]=lad+48;
-				outtextxy(x+textwidth("You got a   and Laadder "),y+12,temp);
+				outtextxy(x+textwidth("You got a   and Laadder "),y,temp);
 			}
 			else
 			{
 				if(position<100)
 				{
-					outtextxy(x-textwidth("You are now at ")-16,y+24,"You are now at ");
-					outtextxy(x-textwidth(temp),y+24,temp);
+					outtextxy(x-textwidth("You are now at ")-16,y+12,"You are now at ");
+					outtextxy(x-textwidth(temp),y+12,temp);
 				}
 				else
-					outtextxy(x-textwidth("You are now at 100!"),y+24,"You are now at 100!");
+					outtextxy(x-textwidth("You are now at 100!")+12,y+24,"You are now at 100!");
 				outtextxy(x-textwidth("You got a   and Ladder  "),y+12,"You got a ");
 				temp[0]=lastroll+48;
 				temp[1]=NULL;
-				outtextxy(x-textwidth(temp)-textwidth(" and Ladder  "),y+12,temp);
-				outtextxy(x-textwidth("and Ladder  "),y+12,"and Ladder");
+				outtextxy(x-textwidth(temp)-textwidth(" and Ladder  "),y,temp);
+				outtextxy(x-textwidth("and Ladder  "),y,"and Ladder");
 				temp[0]=lad+48;
-				outtextxy(x-textwidth(temp),y+12,temp);
+				outtextxy(x-textwidth(temp),y,temp);
 			}
 
-		}
+		}}
 	}
 	void indetails()
 	{    gets(plname);
+	       if(!strcmpi(plname,"exit"))
+	       {
+			closegraph();
+			exit(0);
+	       }
 	}
 	char* getname()
 	{	return(plname);
@@ -120,16 +130,6 @@ class player
 };
 player p[2];
 int ladder[3][2];
-int checkladder(int pos)
-{
-	int i,j=0;
-	for(i=0;i<3;i++)
-	{
-		if(pos==ladder[i][0])
-			j=i+1;
-	}
-	return(j);
-}
 void snakeladder()
 {
 	int i,x=2,y=7;
@@ -145,8 +145,8 @@ void snakeladder()
 		do{
 		ladder[i][0]=random(80);
 		ladder[i][1]=random(100);
-		}while(ladder[i][0]<=ladder[i-1][0]||ladder[i][1]==ladder[i-1][1]);
-	}while(ladder[i][1]<=ladder[i][0]+(10-ladder[i][0]%10));
+		}while(ladder[i][1]<=ladder[i][0]+(10-ladder[i][0]%10));
+	}while(ladder[i][0]<=ladder[i-1][0]||ladder[i][1]==ladder[i-1][1]);
 	}}
 
 	for(i=0;i<3;i++,y++)
@@ -245,7 +245,7 @@ void endgame(int mode,int pl)
 }
 void gameplay()
 {
-	char ans[2],ans2='y',*diecheck="Shall we roll the Die? ",*exitcheck="DO YOU REALLY WANT TO EXIT? ";
+	char ans[2],ans2='y',*diecheck="Shall we roll the dice? ",*exitcheck="DO YOU REALLY WANT TO EXIT? ";
 	ans[1]=NULL;
 	int i,pn,y=400,*poly,x[2]={5,640};
 	setfillstyle(SOLID_FILL,0);
@@ -254,16 +254,17 @@ void gameplay()
 	{
 		pn=i%2;
 		setcolor(getbkcolor());
-		if(pn)
+		if(!pn)
 		{
 			poly[0]=321;
-			poly[4]=640;
+			poly[4]=x[!pn];
 		}
 		else
 		{
 			poly[0]=319;
 			poly[4]=0;
 		}
+
 		poly[1]=391;
 		poly[2]=poly[0];
 		poly[3]=480;
@@ -274,27 +275,30 @@ void gameplay()
 		poly[9]=poly[1];
 		fillpoly(5,poly);
 		setcolor(15);
+		p[!pn].disp(x[!pn],y);
+		p[pn].disp(x[pn],y);
 		if(pn)
-		{	outtextxy(x[pn]-textwidth(diecheck)-textwidth("Y"),y,diecheck);
+		{
+			outtextxy(x[pn]-textwidth(diecheck)-textwidth("Y"),y+24,diecheck);
 			ans[0]=getch();
-			outtextxy(x[pn]-textwidth(ans),y,ans);
+			outtextxy(x[pn]-textwidth(ans),y+24,ans);
 		}
 		else
-		{	outtextxy(x[pn],y,diecheck);
+		{	outtextxy(x[pn],y+24,diecheck);
 			ans[0]=getch();
-			outtextxy(x[pn]+1+textwidth(diecheck),y,ans);
+			outtextxy(x[pn]+1+textwidth(diecheck),y+24,ans);
 		}
 		if(ans[0]=='y'||ans[0]=='Y')
 		{
 			while(p[pn].update(random(7))==0) ;
-			p[pn].disp(x[pn],y);
+		       //	p[pn].disp(x[pn],y);
 		}
 		else
 		{
 			if(pn)
-				outtextxy(640-textwidth(exitcheck)-textwidth("Y"),y+12,exitcheck);
+				outtextxy(x[pn]-textwidth(exitcheck)-textwidth("Y"),y+36,exitcheck);
 			else
-				outtextxy(5,y+12,exitcheck);
+				outtextxy(x[pn],y+36,exitcheck);
 			ans2=getch();
 			if(ans2=='y'||ans2=='Y')
 			{	endgame(1,pn);
@@ -332,7 +336,7 @@ void gameplay()
 			else
 				outtextxy(5+textwidth("Currently Winning: "),8,p[1].getname());
 		}
-		delay(250);
+		delay(200);
 	}
 	delete poly;
 	delete diecheck;
@@ -343,7 +347,7 @@ void gameplay()
 void main()
 {
 	clrscr();
-	int gdriver=VGA,gmode=VGAHI;
+	int gdriver=DETECT,gmode;
 	initgraph(&gdriver,&gmode,"");
 	randomize();
 	cout<<"Enter name of Player 1: ";
