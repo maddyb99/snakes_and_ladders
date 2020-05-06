@@ -133,6 +133,7 @@ void gameend(int,int);
 void gameplay();
 void makeladder();
 void gamedisp();
+void help();
 void gamestart();
 int ladder[3][2];
 player p[2];
@@ -249,7 +250,8 @@ void gamestart()
 				break;
 			gamedisp();
 			break;
-		case 1: break;
+		case 1: help();
+			break;
 		case 2: closegraph();
 			exit(0);
 	}
@@ -259,6 +261,16 @@ void gamestart()
 	delete y;
 }
 
+void help()
+{
+	clrscr();
+	cleardevice();
+	settextstyle(0,HORIZ_DIR,3);
+	setcolor(14);
+	outtextxy((getmaxx()-textwidth("You need help?"))/2,(getmaxy()/2)-textheight("A")*2,"You need help?");
+	outtextxy((getmaxx()-textwidth("Ask some kid for that :P"))/2,(getmaxy()/2),"Ask some kid for that :P");
+	getch();
+}
 
 int gameinput(int pnumber)
 {
