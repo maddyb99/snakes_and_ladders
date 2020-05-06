@@ -10,7 +10,7 @@ void gameplay();
 //void makeladder();
 //void makesnake();
 int checksnakeladder(int);
-void gamedisp();
+void gamedisp(int,int);
 void help();
 int gameinput(int);
 void gamestart();
@@ -21,6 +21,7 @@ class player
 
 	public:
 	char plname[9];
+	int color;
 	void reset()
 	{
 		position=0;
@@ -363,7 +364,7 @@ void gamestart()
 			if(!gameinput(1))
 				break;
 			delay(750);
-			gamedisp();
+			gamedisp(0,0);
 			break;
 		case 1: help();
 			break;
@@ -459,6 +460,7 @@ int gameinput(int pnumber)
 			i++;
 	}while(ch!=13);
 	delete poly;
+	p[pnumber].color=pnumber+5;
 	if(!strcmpi(p[pnumber].plname,"home"))
 	{
 		return(0);
@@ -478,88 +480,150 @@ void help()
 	getch();
 }
 
-void gamedisp()
+void gamedisp(int mode=0,int val=0)
 {
 	int x=160,y=40,xi=32,yi=xi,sl,i;
 	char ch[3];
-	clrscr();
-	cleardevice();
-	setcolor(15);
-	line(0,20,640,20);
-	line(130,20,130,390);
-	line(510,20,510,390);
-	line(130,390,510,390);
-	line(0,340,130,340);
-	line(510,340,640,340);
-	line(320,390,320,480);
-	setcolor(2);
-	setfillstyle(SOLID_FILL,9);
-	bar3d(x-10,y-10,x+330,y+330,0,0);
-	//setfillstyle(SOLID_FILL,15);
-	//setcolor(getbkcolor());
-	/*bar3d(x,y,x+320,y+320,0,0);
-	for(i=1;i<10;i++)
-	{	line(x+(32*i),y,x+(32*i),y+(32*10));
-		line(x,y+(32*i),x+(32*10),y+(32*i));
-	} */
-	ch[2]=NULL;
-	x=170;y=340;
-	//makeladder();
-	//makesnake();
-	setcolor(getbkcolor());
-	settextstyle(0,HORIZ_DIR,1);
-	for(i=1;i<101;i++)
+	if(mode==0)
 	{
-		sl=checksnakeladder(i);
-		if(sl>0)
-			setfillstyle(SOLID_FILL,2);
-		else if(sl<0)
-			setfillstyle(SOLID_FILL,RED);
-		else if(sl==0)
-			setfillstyle(SOLID_FILL,15);
-		bar3d(x-10,y+20,x+22,y-12,0,0);
-		if(i==100)
-			outtextxy(x-4,y,"100");
-		else
-		{	ch[0]=i/10+48;
-			ch[1]=i%10+48;
-			outtextxy(x,y,ch);
+		clrscr();
+		cleardevice();
+		setcolor(15);
+		line(0,20,640,20);
+		line(130,20,130,390);
+		line(510,20,510,390);
+		line(130,390,510,390);
+		line(0,340,130,340);
+		line(510,340,640,340);
+		line(320,390,320,480);
+		setcolor(2);
+		setfillstyle(SOLID_FILL,9);
+		bar3d(x-10,y-10,x+330,y+330,0,0);
+		//setfillstyle(SOLID_FILL,15);
+		//setcolor(getbkcolor());
+		/*bar3d(x,y,x+320,y+320,0,0);
+		for(i=1;i<10;i++)
+		{	line(x+(32*i),y,x+(32*i),y+(32*10));
+			line(x,y+(32*i),x+(32*10),y+(32*i));
+		} */
+		ch[2]=NULL;
+		x=170;y=340;
+		//makeladder();
+		//makesnake();
+		setcolor(getbkcolor());
+		settextstyle(0,HORIZ_DIR,1);
+		for(i=1;i<101;i++)
+		{
+			sl=checksnakeladder(i);
+			if(sl>0)
+				setfillstyle(SOLID_FILL,2);
+			else if(sl<0)
+				setfillstyle(SOLID_FILL,RED);
+			else if(sl==0)
+				setfillstyle(SOLID_FILL,15);
+			bar3d(x-10,y+20,x+22,y-12,0,0);
+			if(i==100)
+				outtextxy(x-4,y,"100");
+			else
+			{	ch[0]=i/10+48;
+				ch[1]=i%10+48;
+				outtextxy(x,y,ch);
+			}
+			if(i%10==0)
+			{       x+=xi;
+				xi=xi*-1;
+				y=y-yi;
+			}
+			x+=xi;
+			if(!kbhit())
+				delay(50);
+			else if(i==100)
+				getch();
 		}
-		if(i%10==0)
-		{       x+=xi;
-			xi=xi*-1;
-			y=y-yi;
-		}
-		x+=xi;
-		if(!kbhit())
-			delay(50);
-		else if(i==100)
-			getch();
-	}
-	setcolor(YELLOW);
+		setcolor(YELLOW);
        //	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,1);
-	outtextxy(2,textheight("C"),"Currently Winning: ");
-	outtextxy(2,75,"Ladders are at:");
-	outtextxy(2,175,"Snakes are at:");
-	settextstyle(DEFAULT_FONT,HORIZ_DIR,2);
-	outtextxy(2,350,p[0].plname);
-	outtextxy(getmaxx()-textwidth(p[1].plname),350,p[1].plname);
-	settextstyle(DEFAULT_FONT,HORIZ_DIR,1);
-	y=7,x=2;
-	for(i=0;i<3;i++,y++)
-	{
-		gotoxy(x,y);
-		cout<<i+1<<") "<<ladder[i][0]<<"-"<<ladder[i][1];
+		outtextxy(2,textheight("C"),"Currently Winning: ");
+		outtextxy(2,75,"Ladders are at:");
+		outtextxy(2,175,"Snakes are at:");
+		settextstyle(DEFAULT_FONT,HORIZ_DIR,2);
+		outtextxy(2,350,p[0].plname);
+		outtextxy(getmaxx()-textwidth(p[1].plname),350,p[1].plname);
+		settextstyle(DEFAULT_FONT,HORIZ_DIR,1);
+		y=7,x=2;
+		for(i=0;i<3;i++,y++)
+		{
+			gotoxy(x,y);
+			cout<<i+1<<") "<<ladder[i][0]<<"-"<<ladder[i][1];
+		}
+		y=13;
+		for(i=0;i<3;i++,y++)
+		{
+			gotoxy(x,y);
+			cout<<i+1<<") "<<snakes[i][0]<<"-"<<snakes[i][1];
+		}
+		gameplay();
 	}
-	y=13;
-	for(i=0;i<3;i++,y++)
+	else if(mode==-1)
 	{
-		gotoxy(x,y);
-		cout<<i+1<<") "<<snakes[i][0]<<"-"<<snakes[i][1];
-	}
-	gameplay();
-}
+		x=170;y=340;
+		ch[2]=NULL;
+		setcolor(getbkcolor());
+		settextstyle(0,HORIZ_DIR,1);
+		for(i=1;i<101;i++)
+		{
+			if(i==val)
+			{
+				setfillstyle(SOLID_FILL,15);
+				bar3d(x-10,y+20,x+22,y-12,0,0);
+				if(i==100)
+					outtextxy(x-4,y,"100");
+				else
+				{	ch[0]=i/10+48;
+					ch[1]=i%10+48;
+					outtextxy(x,y,ch);
+				}
+				break;
+			}
+			if(i%10==0)
+			{       x+=xi;
+				xi=xi*-1;
+				y=y-yi;
+			}
+			x+=xi;
+		}
 
+	}
+	else
+	{
+		x=170;y=340;
+		ch[2]=NULL;
+		setcolor(getbkcolor());
+		settextstyle(0,HORIZ_DIR,1);
+		for(i=1;i<101;i++)
+		{
+			if(val==i)
+			{
+				setfillstyle(SOLID_FILL,p[mode-1].color);
+				bar3d(x-10,y+20,x+22,y-12,0,0);
+				if(i==100)
+					outtextxy(x-4,y,"100");
+				else
+				{	ch[0]=i/10+48;
+					ch[1]=i%10+48;
+					outtextxy(x,y,ch);
+				}
+				break;
+			}
+			if(i%10==0)
+			{       x+=xi;
+				xi=xi*-1;
+				y=y-yi;
+			}
+			x+=xi;
+		}
+	}
+}
+/*
 void makeladder()
 {
 	int i;
@@ -581,7 +645,7 @@ void makeladder()
 		}
 	}
 }
-/*
+
 void makesnake()
 {
 	int i;
@@ -715,6 +779,7 @@ void gameplay()
 		}
 		if(ans[0]=='y'||ans[0]=='Y')
 		{
+			gamedisp(-1,p[pn].getpos());
 			do
 			{
 				no=p[pn].update(random(7));
@@ -723,6 +788,7 @@ void gameplay()
 					i--;
 				}
 			}while(no==-1);
+			gamedisp(pn+1,p[pn].getpos());
 		}
 		else
 		{
