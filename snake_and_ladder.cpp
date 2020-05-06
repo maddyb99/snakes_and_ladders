@@ -1,7 +1,6 @@
 #include<iostream.h>
 #include<conio.h>
 #include<stdlib.h>
-#include<graphics.h>
 #include<dos.h>
 class player
 {
@@ -37,17 +36,14 @@ player p[2];
 void gamedisp()
 {
 	clrscr();
-	cleardevice();
 	gotoxy(16,1);
 	cout<<"PLAYER 1";
-	line(320,0,320,600);
 	gotoxy(57,1);
 	cout<<"PLAYER 2";
 }
 void endgame(int mode=0)
 {
 	clrscr();
-	cleardevice();
 	switch(mode)
 	{
 		case 0: cout<<"Player ENDED the Game.";
@@ -139,9 +135,6 @@ void gameplay()
 
 void main()
 {
-	int gmode,gdriver=DETECT;
-	initgraph(&gdriver,&gmode,"");
-	setbkcolor(1);
 	randomize();
 	gamedisp();
 	gameplay();
