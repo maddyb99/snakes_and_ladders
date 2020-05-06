@@ -17,13 +17,16 @@ void help();
 int gameinput(int);
 void gamestart();
 int ladder[3][2],snakes[3][2];
+struct setting
+{
+	int bkcol,boardcol,bframecol,pcol[2];
+}settings;
 class player
 {
 	int position,lastroll[3],start,sl,sl1;
 
 	public:
 	char plname[9];
-	int color;
 	void reset()
 	{
 		position=0;
@@ -233,8 +236,11 @@ void main()
 	snakes[1][1]=12;
 	snakes[2][0]=97;
 	snakes[2][1]=2;
-	p[0].color=1;
-	p[1].color=12;
+	settings.bkcol=7;
+	settings.boardcol=15;
+	settings.bframecol=9;
+	settings.pcol[0]=1;
+	settings.pcol[1]=12;
 	for(;;)
 	{
 		p[0].reset();
@@ -266,14 +272,14 @@ void gamestart()
 	clrscr();
 	cleardevice();
 	int *x,*y,option=0,end=0,mx,my,i;
-	setbkcolor(7);
+	setbkcolor(settings.bkcol);
 	setcolor(1);
 	settextstyle(4,HORIZ_DIR,6);
 	outtextxy((getmaxx()-textwidth("Snakes & Ladders"))/2,textheight("S")*0.8,"Snakes & Ladders");
 	x=new int [2];
 	x[0]=textheight("S")*1.9;
 	settextstyle(0,HORIZ_DIR,1);
-	outtextxy((getmaxx()-textwidth("(V:3.0)"))/2,x[0],"(V:3.1)");
+	outtextxy((getmaxx()-textwidth("(V:3.0.0á)"))/2,x[0],"(V:3.2.0á)");
 	setcolor(14);
 	outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
 	setcolor(2);
@@ -508,7 +514,7 @@ void options()
 	cleardevice();
 	settextstyle(0,HORIZ_DIR,3);
 	setcolor(14);
-	outtextxy((getmaxx()-textwidth("UNDER CONSTRUCTION :("))/2,(getmaxy()/2),"UNDER CONSTRUCTION :(");
+	outtextxy((getmaxx()-textwidth("UNDER CONSTRUCTION :("))/2,(getmaxy()-textheight("A"))/2,"UNDER CONSTRUCTION :(");
 	getch();
 }
 
@@ -521,7 +527,7 @@ void credits()
 	outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
 	settextstyle(0,HORIZ_DIR,3);
 	setcolor(14);
-	outtextxy((getmaxx()-textwidth("UNDER CONSTRUCTION :("))/2,(getmaxy()/2),"UNDER CONSTRUCTION :(");
+	outtextxy((getmaxx()-textwidth("UNDER CONSTRUCTION :("))/2,(getmaxy()-textheight("A"))/2,"UNDER CONSTRUCTION :(");
 	getch();
 }
 
@@ -545,7 +551,7 @@ void gamedisp(int mode=0,int sval=0,int eval=0)
 		line(510,340,640,340);
 		line(320,390,320,466);
 		setcolor(2);
-		setfillstyle(SOLID_FILL,9);
+		setfillstyle(SOLID_FILL,settings.bframecol);
 		bar3d(x-10,y-10,x+330,y+330,0,0);
 		ch[2]=NULL;
 		x=170;y=340;
@@ -554,7 +560,7 @@ void gamedisp(int mode=0,int sval=0,int eval=0)
 		settextstyle(0,HORIZ_DIR,1);
 		for(i=1;i<101;i++)
 		{
-			setfillstyle(SOLID_FILL,15);
+			setfillstyle(SOLID_FILL,settings.boardcol);
 			setcolor(getbkcolor());
 			bar3d(x-10,y+20,x+22,y-12,0,0);
 			sl=checksnakeladder(i);
@@ -588,9 +594,9 @@ void gamedisp(int mode=0,int sval=0,int eval=0)
 		outtextxy(2,75,"Ladders are at:");
 		outtextxy(2,175,"Snakes are at:");
 		settextstyle(DEFAULT_FONT,HORIZ_DIR,2);
-		setcolor(p[0].color);
+		setcolor(settings.pcol[0]);
 		outtextxy(2,350,p[0].plname);
-		setcolor(p[1].color);
+		setcolor(settings.pcol[0]);
 		outtextxy(getmaxx()-textwidth(p[1].plname),350,p[1].plname);
 		settextstyle(DEFAULT_FONT,HORIZ_DIR,1);
 		y=7,x=2;
@@ -618,7 +624,7 @@ void gamedisp(int mode=0,int sval=0,int eval=0)
 			if(i>=sval&&i<=eval)
 			{
 				setcolor(15);
-				setfillstyle(SOLID_FILL,p[mode-1].color);
+				setfillstyle(SOLID_FILL,settings.pcol[mode-1]);
 				bar(x-9,y+19,x+21,y-11);
 				if(i==100)
 					outtextxy(x-4,y,"100");
@@ -640,7 +646,7 @@ void gamedisp(int mode=0,int sval=0,int eval=0)
 					else if(p[!(mode-1)].getpos()==i)
 					{
 						//setcolor(getbkcolor());
-						setfillstyle(SOLID_FILL,p[!(mode-1)].color);
+						setfillstyle(SOLID_FILL,settings.pcol[!(mode-1)]);
 					}
 					else
 					       setcolor(getbkcolor());
@@ -860,7 +866,7 @@ void gameend(int mode,int pl)
 	settextstyle(0,HORIZ_DIR,1);
 	setcolor(14);
 	outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
-	setbkcolor(p[pl].color);
+	setbkcolor(settings.pcol[pl]);
 	switch(mode)
 	{
 		case 1: cout<<"'"<<p[pl].plname<<"' ended the game.";
