@@ -8,13 +8,17 @@
 class player
 {
 	int position,lastroll,lad,start;
-	char plname[9],temp[3];
+	char plname[9];
 /*	player()
 	{	position=0;
 	}*/
 	public:
 	player()
-	{position=0;lastroll=0;start=0;}
+	{
+		position=0;
+		lastroll=0;
+		start=0;
+	}
 	void reset()
 	{
 		position=0;
@@ -50,6 +54,8 @@ class player
 	int getpos(){return(position);}
 	void disp(int x,int y)
 	{
+		char *temp;
+		temp=new char[3];
 		if(lad==0)
 		{
 			temp[2]=NULL;
@@ -126,6 +132,7 @@ class player
 			}
 
 		}
+		delete temp;
 	}
 	int indetails()
 	{       int i=0;
@@ -207,12 +214,9 @@ void gamestart()
 	outtextxy(x[0],y[0],"Play");
 	outtextxy(x[0],y[1],"Help");
 	outtextxy(x[0],y[2],"Exit");
-	poly=new int[10];
+	poly=new int[3];
 	poly[0]=x[1];
 	poly[2]=x[0]-1;
-	poly[4]=poly[2];
-	poly[6]=poly[0];
-	poly[8]=poly[0];
 	do
 	{
 		setcolor(3);
@@ -221,11 +225,8 @@ void gamestart()
 		setcolor(getbkcolor());
 		setfillstyle(SOLID_FILL,getbkcolor());
 		poly[1]=y[option]+textheight(">");
-		poly[3]=poly[1];
-		poly[5]=y[option];
-		poly[7]=poly[5];
-		poly[9]=poly[1];
-		fillpoly(5,poly);
+		poly[3]=y[option];
+		bar(poly[0],poly[1],poly[2],poly[3]);
 		switch(end)
 		{
 			case 's':
@@ -247,9 +248,6 @@ void gamestart()
 				x[0]+=textwidth("Play<-");
 				poly[0]=x[1];
 				poly[2]=x[0]+1;
-				poly[4]=poly[2];
-				poly[6]=poly[0];
-				poly[8]=poly[0];
 				check++;
 				}
 				break;
@@ -264,9 +262,6 @@ void gamestart()
 				x[0]-=textwidth("Play<-");
 				poly[0]=x[1];
 				poly[2]=x[0]-1;
-				poly[4]=poly[2];
-				poly[6]=poly[0];
-				poly[8]=poly[0];
 				check--;
 				}
 				break;
@@ -317,32 +312,21 @@ void gamedisp()
 	line(0,340,130,340);
 	line(510,340,640,340);
 	line(320,390,320,480);
-	poly=new int[10];
+	poly=new int[3];
 	poly[0]=x-10;
 	poly[1]=y-10;
 	poly[2]=x+330;
-	poly[3]=poly[1];
-	poly[4]=poly[2];
-	poly[5]=y+330;
-	poly[6]=poly[0];
-	poly[7]=poly[5];
-	poly[8]=poly[0];
-	poly[9]=poly[1];
-	setfillstyle(SOLID_FILL,6);
-	fillpoly(5,poly);
+	poly[3]=y+330;
+	setcolor(2);
+	setfillstyle(SOLID_FILL,10);
+	bar3d(poly[0],poly[1],poly[2],poly[3],0,0);
 	poly[0]=x;
 	poly[1]=y;
 	poly[2]=x+320;
-	poly[3]=poly[1];
-	poly[4]=poly[2];
-	poly[5]=y+320;
-	poly[6]=poly[0];
-	poly[7]=poly[5];
-	poly[8]=poly[0];
-	poly[9]=poly[1];
+	poly[3]=y+320;
 	setfillstyle(SOLID_FILL,11);
-	setcolor(getbkcolor());
-	fillpoly(5,poly);
+	//setcolor(getbkcolor());
+	bar3d(poly[0],poly[1],poly[2],poly[3],0,0);
 	delete poly;
 	for(i=1;i<10;i++)
 	{	line(x+(32*i),y,x+(32*i),y+(32*10));
@@ -391,17 +375,15 @@ void makeladder()
 		{
 			do{
 				ladder[i][0]=random(60);
-				ladder[i][1]=random(100);
-			}while(ladder[i][0]<0||ladder[i][1]<=ladder[i][0]+(10-ladder[i][0]%10));
+				ladder[i][1]=random(96);
+			}while(ladder[i][0]<5||ladder[i][1]<=ladder[i][0]+(10-ladder[i][0]%10));
 		}
 		else
 		{
 			do{
-				do{
-				ladder[i][0]=random(60);
-				ladder[i][1]=random(100);
-				}while(ladder[i][1]<=ladder[i][0]+(10-ladder[i][0]%10));
-			}while(ladder[i][0]<ladder[i-1][0]||ladder[i][1]==ladder[i-1][1]);
+			ladder[i][0]=random(60);
+			ladder[i][1]=random(96);
+			}while(ladder[i][1]<=ladder[i][0]+(10-ladder[i][0]%10)||ladder[i][0]<ladder[i-1][0]||ladder[i][1]==ladder[i-1][1]);
 		}
 	}
 	for(i=0;i<3;i++,y++)
@@ -417,7 +399,7 @@ void gameplay()
 	ans[1]=NULL;
 	int i,pn,y=400,*poly,x[2]={3,640},no=1;
 	setfillstyle(SOLID_FILL,0);
-	poly=new int[10];
+	poly=new int[3];
 	for(i=0;i>=0;i++)
 	{
 		pn=i%2;
@@ -557,9 +539,9 @@ void gameend(int mode,int pl)
 	cleardevice();
 	switch(mode)
 	{
-		case 1: cout<<p[pl].getname()<<" ended the game.";
+		case 1: cout<<"'"<<p[pl].getname()<<"' ended the game.";
 			break;
-		case 0: cout<<"GAME ENDED\n"<<p[pl].getname()<<" WON.";
+		case 0: cout<<"GAME ENDED\n'"<<p[pl].getname()<<"' WON.";
 			break;
 	}
 	cout<<"\n\nPress any key to continue...";
