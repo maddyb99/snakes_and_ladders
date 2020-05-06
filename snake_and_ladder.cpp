@@ -7,6 +7,8 @@
 #include<string.h>
 void gameend(int,int);
 void gameplay();
+void button(int,int,int,int,int);
+void rembutton(int,int,int,int,int);
 //void makeladder();
 //void makesnake();
 void options();
@@ -17,16 +19,13 @@ void help();
 int gameinput(int);
 void gamestart();
 int ladder[3][2],snakes[3][2];
-struct setting
-{
-	int bkcol,boardcol,bframecol,pcol[2];
-}settings;
 class player
 {
 	int position,lastroll[3],start,sl,sl1;
 
 	public:
 	char plname[9];
+	int color;
 	void reset()
 	{
 		position=0;
@@ -99,6 +98,7 @@ class player
 	void disp(int x,int y)
 	{
 		char *temp;
+		//setcolor(color);
 		temp=new char[4];
 		if(position<100)
 		{
@@ -236,16 +236,52 @@ void main()
 	snakes[1][1]=12;
 	snakes[2][0]=97;
 	snakes[2][1]=2;
-	settings.bkcol=7;
-	settings.boardcol=15;
-	settings.bframecol=9;
-	settings.pcol[0]=1;
-	settings.pcol[1]=12;
+	p[0].color=1;
+	p[1].color=12;
 	for(;;)
 	{
 		p[0].reset();
 		p[1].reset();
 		gamestart();
+	}
+}
+
+void rembutton(int x,int y,int x2,int y2,int dep=0)
+{
+	//int col=getcolor();
+	setfillstyle(EMPTY_FILL,0);
+	setcolor(getbkcolor());
+	bar3d(x,y,x2+dep,y2+dep,0,0);
+}
+
+void button(int x,int y,int x2,int y2,int dep=0)
+{
+	int col=getcolor();
+	if(dep<0)
+	{
+		dep*=-1;
+		setcolor(col);
+		bar3d(x,y,x2,y2,0,0);
+		setcolor(8);
+		for(int i=1;i<=dep;i++)
+		{
+			bar3d(x+i,y+i,x2,y2,0,0);
+		}
+	}
+	else if(dep>0)
+	{
+		setcolor(8);
+		for(int i=dep;i>=1;i--)
+		{
+			bar3d(x,y,x2+i,y2+i,0,0);
+		}
+		setcolor(col);
+		bar3d(x,y,x2,y2,0,0);
+	}
+	else
+	{
+		setcolor(col);
+		bar(x,y,x2,y2);
 	}
 }
 
@@ -272,14 +308,17 @@ void gamestart()
 	clrscr();
 	cleardevice();
 	int *x,*y,option=0,end=0,mx,my,i;
-	setbkcolor(settings.bkcol);
-	setcolor(1);
+	setbkcolor(7);
 	settextstyle(4,HORIZ_DIR,6);
+	setcolor(15);
+	setfillstyle(SOLID_FILL,1);
+	button(-1,textheight("S")*0.7,getmaxx()+1,textheight("S")*2.3,8);
+	setcolor(10);
 	outtextxy((getmaxx()-textwidth("Snakes & Ladders"))/2,textheight("S")*0.8,"Snakes & Ladders");
 	x=new int [2];
-	x[0]=textheight("S")*1.9;
+	x[0]=textheight("S")*2;
 	settextstyle(0,HORIZ_DIR,1);
-	outtextxy((getmaxx()-textwidth("(V:3.0.0á)"))/2,x[0],"(V:3.2.0á)");
+	outtextxy((getmaxx()-textwidth("(V:3.0.0)"))/2,x[0],"(V:3.1.4)");
 	setcolor(14);
 	outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
 	setcolor(2);
@@ -300,11 +339,8 @@ void gamestart()
 	option=0;
 	do
 	{
-		//setfillstyle(EMPTY_FILL,8);
-		setcolor(8);
-		rectangle(x[1]-4,y[option]-(textheight("P")/2),x[1]+textwidth("options")+5,y[option]+(textheight("P")*1.25)+3);
-		setcolor(2);
-		rectangle(x[1]-4,y[option]-(textheight("P")/2),x[1]+textwidth("options")+4,y[option]+(textheight("P")*1.25)+2);
+		setfillstyle(EMPTY_FILL,8);
+		button(x[1]-4,y[option]-(textheight("G")/2),x[1]+textwidth("options")+4,y[option]+(textheight("A")*1.5),1);
 		setcolor(14);
 		switch(option)
 		{
@@ -320,9 +356,7 @@ void gamestart()
 				break;
 		}
 		end=getch();
-		setcolor(getbkcolor());
-		rectangle(x[1]-4,y[option]-(textheight("P")/2),x[1]+textwidth("options")+5,y[option]+(textheight("P")*1.25)+3);
-		rectangle(x[1]-4,y[option]-(textheight("P")/2),x[1]+textwidth("options")+4,(y[option]+textheight("p")*1.25)+2);
+		rembutton(x[1]-4,y[option]-(textheight("G")/2),x[1]+textwidth("options")+4,y[option]+(textheight("A")*1.5),1);
 		setcolor(2);
 		switch(option)
 		{
@@ -339,24 +373,22 @@ void gamestart()
 		}
 		switch(end)
 		{
-			case 's':
-			case 'S':
-			case '2':option++;
-				if(option>4)
-					option=0;
-				break;
-			case 'w':
-			case 'W':
-			case '8':option--;
-				if(option<0)
-					option=4;
+			case 0:end=getch();
+				if(end==80)
+				{	option++;
+					if(option>4)
+						option=0;
+				}
+				else if(end==72)
+				{
+					option--;
+					if(option<0)
+						option=4;
+				}
 				break;
 		}
 	}while(end!=13&&end!='5');
-	setcolor(8);
-	rectangle(x[1]-3,y[option]-(textheight("P")/2)+1,x[1]+textwidth("options")+4,y[option]+(textheight("P")*1.25)+2);
-	setcolor(2);
-	rectangle(x[1]-4,y[option]-(textheight("P")/2),x[1]+textwidth("options")+4,y[option]+(textheight("P")*1.25)+2);
+	button(x[1]-4,y[option]-(textheight("G")/2),x[1]+textwidth("options")+4,y[option]+(textheight("A")*1.4),-1);
 	setcolor(14);
 	switch(option)
 	{
@@ -514,7 +546,7 @@ void options()
 	cleardevice();
 	settextstyle(0,HORIZ_DIR,3);
 	setcolor(14);
-	outtextxy((getmaxx()-textwidth("UNDER CONSTRUCTION :("))/2,(getmaxy()-textheight("A"))/2,"UNDER CONSTRUCTION :(");
+	outtextxy((getmaxx()-textwidth("UNDER CONSTRUCTION :("))/2,(getmaxy()/2),"UNDER CONSTRUCTION :(");
 	getch();
 }
 
@@ -527,7 +559,7 @@ void credits()
 	outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
 	settextstyle(0,HORIZ_DIR,3);
 	setcolor(14);
-	outtextxy((getmaxx()-textwidth("UNDER CONSTRUCTION :("))/2,(getmaxy()-textheight("A"))/2,"UNDER CONSTRUCTION :(");
+	outtextxy((getmaxx()-textwidth("UNDER CONSTRUCTION :("))/2,(getmaxy()/2),"UNDER CONSTRUCTION :(");
 	getch();
 }
 
@@ -551,7 +583,7 @@ void gamedisp(int mode=0,int sval=0,int eval=0)
 		line(510,340,640,340);
 		line(320,390,320,466);
 		setcolor(2);
-		setfillstyle(SOLID_FILL,settings.bframecol);
+		setfillstyle(SOLID_FILL,9);
 		bar3d(x-10,y-10,x+330,y+330,0,0);
 		ch[2]=NULL;
 		x=170;y=340;
@@ -560,7 +592,7 @@ void gamedisp(int mode=0,int sval=0,int eval=0)
 		settextstyle(0,HORIZ_DIR,1);
 		for(i=1;i<101;i++)
 		{
-			setfillstyle(SOLID_FILL,settings.boardcol);
+			setfillstyle(SOLID_FILL,15);
 			setcolor(getbkcolor());
 			bar3d(x-10,y+20,x+22,y-12,0,0);
 			sl=checksnakeladder(i);
@@ -594,9 +626,9 @@ void gamedisp(int mode=0,int sval=0,int eval=0)
 		outtextxy(2,75,"Ladders are at:");
 		outtextxy(2,175,"Snakes are at:");
 		settextstyle(DEFAULT_FONT,HORIZ_DIR,2);
-		setcolor(settings.pcol[0]);
+		setcolor(p[0].color);
 		outtextxy(2,350,p[0].plname);
-		setcolor(settings.pcol[0]);
+		setcolor(p[1].color);
 		outtextxy(getmaxx()-textwidth(p[1].plname),350,p[1].plname);
 		settextstyle(DEFAULT_FONT,HORIZ_DIR,1);
 		y=7,x=2;
@@ -615,6 +647,9 @@ void gamedisp(int mode=0,int sval=0,int eval=0)
 	}
 	else
 	{
+		sound(250);
+		delay(250);
+		nosound();
 		x=170;y=340;
 		ch[2]=NULL;
 		setcolor(getbkcolor());
@@ -624,7 +659,7 @@ void gamedisp(int mode=0,int sval=0,int eval=0)
 			if(i>=sval&&i<=eval)
 			{
 				setcolor(15);
-				setfillstyle(SOLID_FILL,settings.pcol[mode-1]);
+				setfillstyle(SOLID_FILL,p[mode-1].color);
 				bar(x-9,y+19,x+21,y-11);
 				if(i==100)
 					outtextxy(x-4,y,"100");
@@ -646,7 +681,7 @@ void gamedisp(int mode=0,int sval=0,int eval=0)
 					else if(p[!(mode-1)].getpos()==i)
 					{
 						//setcolor(getbkcolor());
-						setfillstyle(SOLID_FILL,settings.pcol[!(mode-1)]);
+						setfillstyle(SOLID_FILL,p[!(mode-1)].color);
 					}
 					else
 					       setcolor(getbkcolor());
@@ -718,7 +753,7 @@ void makesnake()
 */
 void gameplay()
 {
-	char ans[2],ans2='y',*diecheck="Shall we roll the dice? ",*exitcheck="DO YOU REALLY WANT TO EXIT? ";
+	char ans[2],ans2='y';
 	ans[1]=NULL;
 	int i,pn,y=400,*poly,x[2]={3,640},no=1,j,pos;
 	setfillstyle(SOLID_FILL,0);
@@ -813,14 +848,14 @@ void gameplay()
 			outtextxy(5+textwidth("Currently Winning: "),8,"Its a TIE!");
 		if(pn)
 		{
-			outtextxy(x[pn]-textwidth(diecheck)-textwidth("Y"),y+24,diecheck);
+			outtextxy(x[pn]-textwidth("Shall we roll the dice? "),y+24,"Shall we roll the dice?");
 			ans[0]=getch();
 			outtextxy(x[pn]-textwidth(ans),y+24,ans);
 		}
 		else
-		{	outtextxy(x[pn],y+24,diecheck);
+		{	outtextxy(x[pn],y+24,"Shall we roll the dice?");
 			ans[0]=getch();
-			outtextxy(x[pn]+1+textwidth(diecheck),y+24,ans);
+			outtextxy(x[pn]+1+textwidth("Shall we roll the dice?"),y+24,ans);
 		}
 		if(ans[0]=='y'||ans[0]=='Y')
 		{
@@ -837,10 +872,11 @@ void gameplay()
 		}
 		else
 		{
+			setcolor(RED);
 			if(pn)
-				outtextxy(x[pn]-textwidth(exitcheck)-textwidth("Y"),y+36,exitcheck);
+				outtextxy(x[pn]-textwidth("DO YOU REALLY WANT TO EXIT? ")-textwidth("Y"),y+36,"DO YOU REALLY WANT TO EXIT? ");
 			else
-				outtextxy(x[pn],y+36,exitcheck);
+				outtextxy(x[pn],y+36,"DO YOU REALLY WANT TO EXIT? ");
 			ans2=getch();
 			if(ans2=='y'||ans2=='Y')
 			{	gameend(1,pn);
@@ -851,12 +887,11 @@ void gameplay()
 				i--;
 				no--;
 			}
+			setcolor(15);
 		}
 		delay(200);
 	}
 	delete poly;
-	delete diecheck;
-	delete exitcheck;
 }
 
 void gameend(int mode,int pl)
@@ -866,12 +901,29 @@ void gameend(int mode,int pl)
 	settextstyle(0,HORIZ_DIR,1);
 	setcolor(14);
 	outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
-	setbkcolor(settings.pcol[pl]);
+	int i=0;
 	switch(mode)
 	{
 		case 1: cout<<"'"<<p[pl].plname<<"' ended the game.";
+			do
+			{
+				if(i%2)
+					setbkcolor(LIGHTRED);
+				else
+					setbkcolor(BLUE);
+				i++;
+				delay(500);
+			}while(!kbhit());
 			break;
-		case 0: cout<<"GAME ENDED\n'"<<p[pl].plname<<"' WON.";
+		case 0: cout<<"Game Ended\n'"<<p[pl].plname<<"' Won!";
+			do
+			{
+				if(i%10==0)
+					i++;
+				setbkcolor(i%10);
+				i++;
+				delay(500);
+			}while(!kbhit());
 			break;
 	}
 	cout<<"\n\nPress any key to continue...";
