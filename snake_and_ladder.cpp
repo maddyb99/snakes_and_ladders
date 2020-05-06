@@ -117,6 +117,8 @@ class player
 	}
 	void indetails()
 	{    gets(plname);
+		if(strlen(plname)>8)
+			exit(0);
 	       if(!strcmpi(plname,"exit"))
 	       {
 			closegraph();
@@ -254,20 +256,22 @@ void gameplay()
 	{
 		pn=i%2;
 		setcolor(getbkcolor());
-		if(!pn)
-		{
-			poly[0]=321;
-			poly[4]=x[!pn];
-		}
-		else
-		{
-			poly[0]=319;
-			poly[4]=0;
-		}
-
+		poly[0]=319;
 		poly[1]=391;
 		poly[2]=poly[0];
 		poly[3]=480;
+		poly[4]=x[pn];
+		poly[5]=poly[3];
+		poly[6]=poly[4];
+		poly[7]=poly[1];
+		poly[8]=poly[0];
+		poly[9]=poly[1];
+		fillpoly(5,poly);
+		poly[0]=321;
+		poly[1]=391;
+		poly[2]=poly[0];
+		poly[3]=480;
+		poly[4]=x[pn];
 		poly[5]=poly[3];
 		poly[6]=poly[4];
 		poly[7]=poly[1];
@@ -336,6 +340,8 @@ void gameplay()
 			else
 				outtextxy(5+textwidth("Currently Winning: "),8,p[1].getname());
 		}
+		else
+			outtextxy(5+textwidth("Currently Winning: "),8,"Its a TIE!");
 		delay(200);
 	}
 	delete poly;
