@@ -10,6 +10,8 @@ This is a C++ program aimed at bringing the old world charm to the new world. Wi
 
 This game is the exact version of snakes and ladders with a checked board, attractive 3D buttons and colourful animations. Currently it's a two player game which can save a game if it is left half played and recover a lost game in case of a mishap.
 
+Later changes like save game, autosave and reload games was added while working in collaboration with Ishita Jindal dor a school project and are in the branch named collabproj.
+
 ## Features:
 
 1.	Attractive **3-D design** and drop shadows.
