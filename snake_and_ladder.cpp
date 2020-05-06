@@ -10,7 +10,7 @@ void gameplay();
 //void makeladder();
 //void makesnake();
 int checksnakeladder(int);
-void gamedisp(int,int);
+void gamedisp(int,int,int);
 void help();
 int gameinput(int);
 void gamestart();
@@ -35,9 +35,9 @@ class player
 	}
 	int update(int roll)
 	{
-			lastroll[0]=lastroll[1];
-			lastroll[1]=lastroll[2];
-			lastroll[2]=roll;
+		lastroll[0]=lastroll[1];
+		lastroll[1]=lastroll[2];
+		lastroll[2]=roll;
 		if(lastroll[2]==0)
 			return(-1);
 		else if(lastroll[2]==6&&start==0)
@@ -46,14 +46,14 @@ class player
 			lastroll[2]=0;
 			return(0);
 		}
-		else if(lastroll[2]==6)
-			return(0);
 		if(start==1)
 		{
 			//gamedisp(-1,position);
 			sl=0;
 			if(position+lastroll[2]<=100&&(lastroll[0]!=6||lastroll[1]!=6||lastroll[2]!=6))
 			{
+				if(lastroll[2]==6)
+					return(0);
 				if(lastroll[1]==6)
 				{
 					position+=lastroll[2];
@@ -364,7 +364,7 @@ void gamestart()
 			if(!gameinput(1))
 				break;
 			delay(750);
-			gamedisp(0,0);
+			gamedisp(0,0,0);
 			break;
 		case 1: help();
 			break;
@@ -460,7 +460,7 @@ int gameinput(int pnumber)
 			i++;
 	}while(ch!=13);
 	delete poly;
-	p[pnumber].color=pnumber+5;
+	p[pnumber].color=pnumber+12;
 	if(!strcmpi(p[pnumber].plname,"home"))
 	{
 		return(0);
@@ -480,7 +480,7 @@ void help()
 	getch();
 }
 
-void gamedisp(int mode=0,int val=0)
+void gamedisp(int mode=0,int sval=0,int eval=0)
 {
 	int x=160,y=40,xi=32,yi=xi,sl,i;
 	char ch[3];
@@ -514,13 +514,22 @@ void gamedisp(int mode=0,int val=0)
 		settextstyle(0,HORIZ_DIR,1);
 		for(i=1;i<101;i++)
 		{
+			setfillstyle(SOLID_FILL,15);
 			sl=checksnakeladder(i);
 			if(sl>0)
-				setfillstyle(SOLID_FILL,2);
-			else if(sl<0)
-				setfillstyle(SOLID_FILL,RED);
-			else if(sl==0)
+			{
+				setcolor(2);
 				setfillstyle(SOLID_FILL,15);
+			}
+			else if(sl<0)
+			{
+				setcolor(RED);
+				setfillstyle(SOLID_FILL,15);
+			}
+			else
+			{
+				setcolor(0);
+			}
 			bar3d(x-10,y+20,x+22,y-12,0,0);
 			if(i==100)
 				outtextxy(x-4,y,"100");
@@ -546,7 +555,9 @@ void gamedisp(int mode=0,int val=0)
 		outtextxy(2,75,"Ladders are at:");
 		outtextxy(2,175,"Snakes are at:");
 		settextstyle(DEFAULT_FONT,HORIZ_DIR,2);
+		setcolor(p[0].color);
 		outtextxy(2,350,p[0].plname);
+		setcolor(p[1].color);
 		outtextxy(getmaxx()-textwidth(p[1].plname),350,p[1].plname);
 		settextstyle(DEFAULT_FONT,HORIZ_DIR,1);
 		y=7,x=2;
@@ -563,36 +574,6 @@ void gamedisp(int mode=0,int val=0)
 		}
 		gameplay();
 	}
-	else if(mode==-1)
-	{
-		x=170;y=340;
-		ch[2]=NULL;
-		setcolor(getbkcolor());
-		settextstyle(0,HORIZ_DIR,1);
-		for(i=1;i<101;i++)
-		{
-			if(i==val)
-			{
-				setfillstyle(SOLID_FILL,15);
-				bar3d(x-10,y+20,x+22,y-12,0,0);
-				if(i==100)
-					outtextxy(x-4,y,"100");
-				else
-				{	ch[0]=i/10+48;
-					ch[1]=i%10+48;
-					outtextxy(x,y,ch);
-				}
-				break;
-			}
-			if(i%10==0)
-			{       x+=xi;
-				xi=xi*-1;
-				y=y-yi;
-			}
-			x+=xi;
-		}
-
-	}
 	else
 	{
 		x=170;y=340;
@@ -601,8 +582,9 @@ void gamedisp(int mode=0,int val=0)
 		settextstyle(0,HORIZ_DIR,1);
 		for(i=1;i<101;i++)
 		{
-			if(val==i)
+			if(i>=sval&&i<=eval)
 			{
+				setcolor(getbkcolor());
 				setfillstyle(SOLID_FILL,p[mode-1].color);
 				bar3d(x-10,y+20,x+22,y-12,0,0);
 				if(i==100)
@@ -612,7 +594,32 @@ void gamedisp(int mode=0,int val=0)
 					ch[1]=i%10+48;
 					outtextxy(x,y,ch);
 				}
-				break;
+				if(!kbhit())
+					delay(750/(eval-sval));
+				if(i!=eval)
+				{
+					setfillstyle(SOLID_FILL,15);
+					sl=checksnakeladder(i);
+					if(sl>0)
+						setcolor(2);
+					else if(sl<0)
+						setcolor(RED);
+					else if(p[!(mode-1)].getpos()==i)
+					{
+						setcolor(getbkcolor());
+						setfillstyle(SOLID_FILL,p[!(mode-1)].color);
+					}
+					else
+					       setcolor(getbkcolor());
+					bar3d(x-10,y+20,x+22,y-12,0,0);
+					if(i==100)
+						outtextxy(x-4,y,"100");
+					else
+					{	ch[0]=i/10+48;
+						ch[1]=i%10+48;
+						outtextxy(x,y,ch);
+					}
+				}
 			}
 			if(i%10==0)
 			{       x+=xi;
@@ -621,6 +628,8 @@ void gamedisp(int mode=0,int val=0)
 			}
 			x+=xi;
 		}
+		if(kbhit())
+			getch();
 	}
 }
 /*
@@ -675,7 +684,7 @@ void gameplay()
 {
 	char ans[2],ans2='y',*diecheck="Shall we roll the dice? ",*exitcheck="DO YOU REALLY WANT TO EXIT? ";
 	ans[1]=NULL;
-	int i,pn,y=400,*poly,x[2]={3,640},no=1,j;
+	int i,pn,y=400,*poly,x[2]={3,640},no=1,j,pos;
 	setfillstyle(SOLID_FILL,0);
 	poly=new int[3];
 	for(i=0;i>=0;i++)
@@ -779,7 +788,7 @@ void gameplay()
 		}
 		if(ans[0]=='y'||ans[0]=='Y')
 		{
-			gamedisp(-1,p[pn].getpos());
+			pos=p[pn].getpos();
 			do
 			{
 				no=p[pn].update(random(7));
@@ -788,7 +797,7 @@ void gameplay()
 					i--;
 				}
 			}while(no==-1);
-			gamedisp(pn+1,p[pn].getpos());
+			gamedisp(pn+1,pos,p[pn].getpos());
 		}
 		else
 		{
