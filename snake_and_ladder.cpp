@@ -1,260 +1,442 @@
 #include<iostream.h>
-#include<conio.h>
+#include<fstream.h>
 #include<stdlib.h>
-#include<dos.h>
-#include<graphics.h>
+#include<conio.h>
 #include<stdio.h>
 #include<string.h>
-void gameend(int,int);
-void gameplay();
-void button(int,int,int,int,int);
-void rembutton(int,int,int,int,int);
-//void makeladder();
-//void makesnake();
-void options();
-void credits();
-int checksnakeladder(int);
-void gamedisp(int,int,int);
-void help();
-int gameinput(int);
-void gamestart();
-int ladder[3][2],snakes[3][2];
-class player
+#include<ctype.h>
+#include<process.h>
+#include<dos.h>
+#include<graphics.h>
+int lad[3][2], snake[3][2];
+int chcksnk(int);
+int chcklad(int);
+void gamedisp(int=0,int=0,int=0,int=1);
+class PLAYER
 {
-	int position,lastroll[3],start,sl,sl1;
-
-	public:
-	char plname[9];
-	int color;
-	void reset()
+	int start,sl,lastroll[3],pos,roll;
+	void updatescreen(int=0);
+	void last(int rol)
 	{
-		position=0;
-		lastroll[3]=0;
+		for(int i=2;i>0;i--)
+		lastroll[i]=lastroll[i-1];
+		lastroll[0]=rol;
+	}
+	int chcksix()
+	{
+	    int j=0;
+	    while(lastroll[j]==6&&j<2)
+		j++;
+	    return j;
+	}
+public:
+	int col,no;
+	char name[10];
+	PLAYER()
+	{
+		pos=0;
+		start=0;
+		no=-1;
+		sl=0;
+		name[0]=NULL;
+		lastroll[0]=0;
 		lastroll[1]=0;
 		lastroll[2]=0;
-		sl=0;
-		sl1=0;
+		roll=lastroll[0];
+	}
+	void reset()
+	{
+		pos=0;
 		start=0;
-		plname[0]=NULL;
+		sl=0;
+		name[0]=NULL;
+		lastroll[0]=0;
+		lastroll[1]=0;
+		lastroll[2]=0;
+		no=-1;
+		roll=lastroll[0];
 	}
-	int update(int roll)
+	int update(int rol)
 	{
-		lastroll[0]=lastroll[1];
-		lastroll[1]=lastroll[2];
-		lastroll[2]=roll;
-		if(lastroll[2]==0)
-			return(-1);
-		else if(lastroll[2]==6&&start==0)
+		int ret=0;
+		sl=0;
+		if(rol==0)
 		{
-			start=1;
-			lastroll[2]=0;
-			return(0);
+		     updatescreen();
+		     return 0;
 		}
-		if(start==1)
+		roll=rol;
+		if(start)
 		{
-			//gamedisp(-1,position);
-			sl=0;
-			if(position+lastroll[2]<=100&&(lastroll[0]!=6||lastroll[1]!=6||lastroll[2]!=6))
+		    if(roll==6)
+		    {
+			if(chcksix()==2)
 			{
-				if(lastroll[2]==6)
-					return(0);
-				if(lastroll[1]==6)
-				{
-					position+=lastroll[2];
-					position+=lastroll[1];
-					//lastroll[1]=0;
-				}
-				else if(lastroll[0]==6&&lastroll[1]==6)
-				{	position+=(lastroll[2]+lastroll[1]+lastroll[0]);
-					//position+=lastroll[1];
-					//position+=lastroll[0];
-					//lastroll[1]=0;
-				}
-				else
-					position+=lastroll[2];
-				sl=checksnakeladder(position);
-				if(sl>0)
-					position=ladder[sl-1][1];
-				else if(sl<0)
-					position=snakes[(sl*-1)-1][1];
+				last(0);
+				ret=0;
 			}
-			else if(lastroll[2]+position>100)
+			else
 			{
-				if(lastroll[2]==6)
-					lastroll[2]=0;
+				ret=1;
+				last(roll);
 			}
-			else if(lastroll[0]==6&&lastroll[1]==6&&lastroll[2]==6)
-				lastroll[2]=0;
-		}
-		//gamedisp(color,position);
-		return(1);
-	}
-
-	int getpos()
-	{
-		return(position);
-	}
-
-	void disp(int x,int y)
-	{
-		char *temp;
-		//setcolor(color);
-		temp=new char[4];
-		if(position<100)
-		{
-			temp[2]=NULL;
-			temp[0]=position/10+48;
-			temp[1]=position%10+48;
+			updatescreen(0);
+			return ret;
+		    }
+		    else
+		    {	if((pos+(roll+(chcksix()*6)))<=100)
+				pos+=(roll+(chcksix()*6));
+			//pos--;
+		    }
 		}
 		else
 		{
-			temp[3]=NULL;
-			temp[0]='1';
-			temp[1]='0';
-			temp[2]='0';
+			if(roll==1||roll==6)
+			{
+				pos=pos+roll;
+				start=1;
+				if(roll==6)
+				roll=-1;
+			}
 		}
+		updatescreen();
+		if(roll==-1)
+			gamedisp(no,0,6,1);
+		else
+			gamedisp(no,pos-(roll+(chcksix()*6)),pos,1);
+		last(roll);
+		sl=chcklad(pos);
+		if(sl>0)
+		{
+			pos=lad[sl-1][1];
+			gamedisp(no,lad[sl-1][0],lad[sl-1][1],0);
+		}
+		else if(chcksnk(pos)<0)
+		{
+			sl=chcksnk(pos);
+			sl*=-1     ;
+			pos=snake[(sl)-1][1];
+			gamedisp(no,snake[sl-1][0],snake[sl-1][1],0);
+			sl*=-1;
+		}
+		updatescreen(sl);
+		return 0;
+	}
+	int getpos()
+	{return pos;}
+
+};
+void PLAYER::updatescreen(int sl)
+{
+	int x,y=400;
+	char *temp;
+	setcolor(getbkcolor());
+	setfillstyle(SOLID_FILL,getbkcolor());
+	temp=new char[4];
+	if(pos<100)
+	{
+		temp[2]=NULL;
+		temp[0]=pos/10+48;
+		temp[1]=pos%10+48;
+	}
+	else
+	{
+		temp[3]=NULL;
+		temp[0]='1';
+		temp[1]='0';
+		temp[2]='0';
+	}
+	if(no==1)
+	{
+		x=3;
+		bar3d(x,y-5,x+textwidth("do you want to save before exit? cancel"),y+(10*textheight("A")),0,0);
+		setcolor(WHITE);
+		outtextxy(x,y+12,"You are now at ");
+		outtextxy(x+textwidth("You are now at "),y+12,temp);
+	}
+	else
+	{
+		x=getmaxx();
+		bar3d(x-textwidth("do you want to save before exit? cancel"),y-5,x,y+(6*textheight("A")),0,0);
+		setcolor(WHITE);
+		outtextxy(x-textwidth("You are now at ")-textwidth(temp),y+12,"You are now at ");
+		outtextxy(x-textwidth(temp),y+12,temp);
+	}
+	if(roll==-1&&start==1)
+		temp[0]='6';
+	else
+		temp[0]=lastroll[0]+48;
+	temp[1]=NULL;
+	if(sl==0)
+	{
+		if(no==1)
+		{
+			outtextxy(x,y,"You got a");
+			outtextxy(x+textwidth("You got a "),y,temp);
+		}
+		else
+		{
+			outtextxy(x-textwidth("You got a ")-16,y,"You got a");
+			outtextxy(x-textwidth(temp),y,temp);
+		}
+	}
+	else if(sl>0)
+	{
+		if(no==1)
+		{
+			outtextxy(x,y,"You got a ");
+			outtextxy(x+textwidth("You got a "),y,temp);
+			outtextxy(x+textwidth("You got a   "),y,"and Ladder");
+			temp[0]=sl+48;
+			outtextxy(x+textwidth("You got a   and Ladder "),y,temp);
+		}
+		else
+		{
+			outtextxy(x-textwidth("You got a   and Ladder  "),y,"You got a ");
+			outtextxy(x-textwidth(temp)-textwidth(" and Ladder  "),y,temp);
+			outtextxy(x-textwidth("and Ladder  "),y,"and Ladder");
+			temp[0]=sl+48;
+			outtextxy(x-textwidth(temp),y,temp);
+		}
+	}
+	else if(sl<0)
+	{
 		if(x!=640)
 		{
-			outtextxy(x,y+12,"You are now at ");
-			outtextxy(x+textwidth("You are now at "),y+12,temp);
+			outtextxy(x,y,"You got a ");
+			outtextxy(x+textwidth("You got a "),y,temp);
+			outtextxy(x+textwidth("You got a   "),y,"and Snake");
+			temp[0]=(sl*-1)+48;
+			outtextxy(x+textwidth("You got a   and Snake "),y,temp);
 		}
 		else
 		{
-			outtextxy(x-textwidth("You are now at ")-textwidth(temp),y+12,"You are now at ");
-			outtextxy(x-textwidth(temp),y+12,temp);
+			outtextxy(x-textwidth("You got a   and Snake  "),y,"You got a ");
+			outtextxy(x-textwidth(temp)-textwidth(" and Snake  "),y,temp);
+			outtextxy(x-textwidth("and Snake  "),y,"and Snake");
+			temp[0]=(sl*-1)+48;
+			outtextxy(x-textwidth(temp),y,temp);
 		}
-		if(lastroll[2]==0&&start==1)
-			temp[0]='6';
-		else
-			temp[0]=lastroll[2]+48;
-		temp[1]=NULL;
-		if(sl==0&&sl1==0)
-		{
-			if(x!=640)
-			{
-
-				/*if(position<100)
-				{
-					outtextxy(x,y+12,"You are now at ");
-					outtextxy(x+textwidth("You are now at "),y+12,temp);
-				}
-				else
-					outtextxy(x,y+12,"You are now at 100!");
-				*/
-				outtextxy(x,y,"You got a ");
-				outtextxy(x+textwidth("You got a "),y,temp);
-			}
-			else
-			{
-				/*if(position<100)
-				{
-					outtextxy(x-textwidth("You are now at ")-16,y+12,"You are now at ");
-					outtextxy(x-textwidth(temp),y+12,temp);
-				}
-				else
-					outtextxy(x-textwidth("You are now at 100!"),y+12,"You are now at 100!");
-				*/
-				outtextxy(x-textwidth("You got a")-16,y,"You got a ");
-
-				outtextxy(x-textwidth(temp),y,temp);
-			}
-		}
-		else if(sl>0)
-		{
-			if(x!=640)
-			{
-				/*outtextxy(x,y+12,"You are now at ");
-				outtextxy(x+textwidth("You are now at "),y+12,temp);
-				*/
-				outtextxy(x,y,"You got a ");
-
-				outtextxy(x+textwidth("You got a "),y,temp);
-				outtextxy(x+textwidth("You got a   "),y,"and Ladder");
-				temp[0]=sl+48;
-				outtextxy(x+textwidth("You got a   and Ladder "),y,temp);
-			}
-			else
-			{
-				/*outtextxy(x-textwidth("You are now at ")-16,y+12,"You are now at ");
-				outtextxy(x-textwidth(temp),y+12,temp);
-				*/
-				outtextxy(x-textwidth("You got a   and Ladder  "),y,"You got a ");
-
-				outtextxy(x-textwidth(temp)-textwidth(" and Ladder  "),y,temp);
-				outtextxy(x-textwidth("and Ladder  "),y,"and Ladder");
-				temp[0]=sl+48;
-				outtextxy(x-textwidth(temp),y,temp);
-			}
-
-		}
-		else if(sl<0)
-		{
-			if(x!=640)
-			{
-				/*outtextxy(x,y+12,"You are now at ");
-				outtextxy(x+textwidth("You are now at "),y+12,temp);
-				*/
-				outtextxy(x,y,"You got a ");
-
-				outtextxy(x+textwidth("You got a "),y,temp);
-				outtextxy(x+textwidth("You got a   "),y,"and Snake");
-				temp[0]=(sl*-1)+48;
-				outtextxy(x+textwidth("You got a   and Snake "),y,temp);
-			}
-			else
-			{
-				/*outtextxy(x-textwidth("You are now at ")-16,y+12,"You are now at ");
-				outtextxy(x-textwidth(temp),y+12,temp);
-				*/
-				outtextxy(x-textwidth("You got a   and Snake  "),y,"You got a ");
-
-				outtextxy(x-textwidth(temp)-textwidth(" and Snake  "),y,temp);
-				outtextxy(x-textwidth("and Snake  "),y,"and Snake");
-				temp[0]=(sl*-1)+48;
-				outtextxy(x-textwidth(temp),y,temp);
-			}
-
-		}
-		delete temp;
 	}
-}p[2];
+	delete temp;
+}
 
-void main()
+struct GAME
 {
-	int gdriver=DETECT,gmode;
-	initgraph(&gdriver,&gmode,"");
+    PLAYER p[2];
+    int tomove,owr;
+}G;
+
+int circ(int,int,int=-1);
+void button(int,int,int,int,int=0);
+void rembutton(int,int,int,int,int=0);
+void play();
+void gameend(int);
+int gameinput(int);
+void credits();
+void help();
+int endg();
+void save();
+int load();
+int check();
+
+int main()
+{
+	int i,opt,x,*y,chck,gdriver=DETECT,gmode,end=0,mx,my,r,col;
+	char ch;
+	initgraph(&gdriver,&gmode,"");               //initialise graphics
 	randomize();
-	ladder[0][0]=18;
-	ladder[0][1]=61;
-	ladder[1][0]=35;
-	ladder[1][1]=69;
-	ladder[2][0]=65;
-	ladder[2][1]=99;
-	snakes[0][0]=58;
-	snakes[0][1]=29;
-	snakes[1][0]=73;
-	snakes[1][1]=12;
-	snakes[2][0]=97;
-	snakes[2][1]=2;
-	p[0].color=1;
-	p[1].color=12;
-	for(;;)
+    opt=0;
+	lad[0][0]=18;
+	lad[0][1]=67;
+	lad[1][0]=35;
+	lad[1][1]=69;
+	lad[2][0]=65;
+	lad[2][1]=99;
+	snake[0][0]=58;
+	snake[0][1]=29;
+	snake[1][0]=73;
+	snake[1][1]=12;
+	snake[2][0]=97;
+	snake[2][1]=2;
+	if(check())
 	{
-		p[0].reset();
-		p[1].reset();
-		gamestart();
+		setbkcolor(7);
+		circ(getmaxx()/2,y[opt]+(textheight("A")/2));
+		play();
 	}
+	circ(getmaxx()/2,y[opt]+(textheight("A")/2));
+	setbkcolor(7);
+	col=-1;
+    for(;;)
+    {
+		if(col!=-1)
+		circ(getmaxx()/2,y[opt]+(textheight("A")/2),col);
+		cleardevice();
+		settextstyle(1,HORIZ_DIR,6);
+		setcolor(15);
+		setfillstyle(SOLID_FILL,1);
+		button(-1,textheight("S")*0.7,getmaxx()+1,textheight("S")*2.3,8);
+		setcolor(10);
+		outtextxy((getmaxx()-textwidth("Snakes & Ladders"))/2,textheight("S")*0.8,"Snakes & Ladders");
+		setcolor(2);
+		settextstyle(0,HORIZ_DIR,2);
+		x=(getmaxx()/2)-(textwidth("Load game")/2);
+		y=new int[5];
+		y[0]=(getmaxy()/2)-(textheight("P")*4);
+		y[1]=(getmaxy()/2)-(textheight("P")*2);
+		y[2]=(getmaxy()/2);
+		y[3]=(getmaxy()/2)+(textheight("P")*2);
+		y[4]=(getmaxy()/2)+(textheight("P")*4);
+		outtextxy((getmaxx()-textwidth("New Game"))/2,y[0],"New Game");
+		outtextxy((getmaxx()-textwidth("NeweeGame"))/2,y[1],"Load Game");
+		outtextxy((getmaxx()-textwidth("NewGame"))/2,y[2],"Credits");
+		outtextxy((getmaxx()-textwidth("Newe"))/2,y[3],"Help");
+		outtextxy((getmaxx()-textwidth("Newe"))/2,y[4],"Exit");
+		do{
+			setfillstyle(EMPTY_FILL,8);
+			button(x-4,y[opt]-(textheight("G")/2),x+textwidth("load game")+4,y[opt]+(textheight("A")*1.5),1);
+			setcolor(14);
+			switch(opt)
+			{
+				case 0:outtextxy((getmaxx()-textwidth("New Game"))/2,y[0],"New Game");
+					break;
+				case 1:outtextxy((getmaxx()-textwidth("LOAD GAME"))/2,y[1],"Load Game");
+					break;
+				case 2:outtextxy((getmaxx()-textwidth("credits"))/2,y[2],"Credits");
+					break;
+				case 3:outtextxy((getmaxx()-textwidth("Play"))/2,y[3],"Help");
+					break;
+				case 4:outtextxy((getmaxx()-textwidth("Play"))/2,y[4],"Exit");
+					break;
+			}
+			end=getch(); //input from keyboard
+			rembutton(x-4,y[opt]-(textheight("G")/2),x+textwidth("load game")+4,y[opt]+(textheight("A")*1.5),1);
+			setcolor(2);
+			switch(opt)
+			{
+				case 0:outtextxy((getmaxx()-textwidth("New Game"))/2,y[0],"New Game");
+					break;
+				case 1:outtextxy((getmaxx()-textwidth("LOAD GAME"))/2,y[1],"Load Game");
+					break;
+				case 2:outtextxy((getmaxx()-textwidth("credits"))/2,y[2],"Credits");
+					break;
+				case 3:outtextxy((getmaxx()-textwidth("Play"))/2,y[3],"Help");
+					break;
+				case 4:outtextxy((getmaxx()-textwidth("Play"))/2,y[4],"Exit");
+					break;
+			}
+			switch(end)
+			{
+				case 'w':
+				case 'W':
+				case '8':opt--;
+						if(opt<0)
+							opt=4;
+					break;
+				case 's':
+				case 'S':
+				case '2':opt++;
+						if(opt>4)
+							opt=0;
+						break;
+
+			}
+		}while(end!=13&&end!='5');
+		col=circ(getmaxx()/2,y[opt]+(textheight("A")/2));
+		delete y;
+	    switch(opt)
+	    {
+			case 0:
+				G.p[0].reset();
+				G.p[1].reset();
+				G.tomove=0;
+				G.owr=-1;
+				G.p[0].no=1;
+				G.p[1].no=2;
+				G.p[0].col=LIGHTBLUE;
+				G.p[1].col=LIGHTRED;
+				clrscr();
+				cleardevice();
+				chck=gameinput(0);
+				if(chck==0)
+					break;
+				chck=gameinput(1);
+				if(chck==0)
+					break;
+				delay(250);
+				circ(getmaxx()/2,y[opt]+(textheight("A")/2),col);
+				play();
+				break;
+			case 1:
+				if(load())
+				play();
+				break;
+			case 2: credits();
+				break;
+			case 3: help();
+				break;
+			case 4: return(0);
+	    }
+    }
 }
 
-void rembutton(int x,int y,int x2,int y2,int dep=0)
+int chcklad(int pos)
 {
-	//int col=getcolor();
-	setfillstyle(EMPTY_FILL,0);
-	setcolor(getbkcolor());
-	bar3d(x,y,x2+dep,y2+dep,0,0);
+    int i,ret=0;
+    for(i=0;i<3;i++)
+	{
+		if(lad[i][0]==pos)
+		{
+			ret=i+1;
+			break;
+		}
+    }
+    return ret;
 }
 
-void button(int x,int y,int x2,int y2,int dep=0)
+int chcksnk(int pos)
+{
+    int i,ret=0;
+    for(i=0;i<3;i++)
+    {
+		if(snake[i][0]==pos)
+		{
+			ret=-(i+1);
+			break;
+		}
+    }
+    return ret;
+}
+
+int circ(int x, int y,int col)
+{
+	int r,old=getcolor();
+	if(col==-1)
+	{       
+		do{
+			col=random(16);
+		}while(col==getbkcolor()||col==G.p[0].col||col==G.p[1].col||col==WHITE||col==BLUE);
+	}
+	setfillstyle(SOLID_FILL,col);
+	setcolor(col);
+	for(r=1;r<560;r+=9)
+	{
+		if(kbhit()!=0)
+		{
+			getch();
+			break;
+		}
+		fillellipse(x,y,r,r);
+		delay(1);
+	}
+	setcolor(old);
+	if(r>=560)
+	delay(100);
+	return (col);
+}
+
+void button(int x,int y,int x2,int y2,int dep)
 {
 	int col=getcolor();
 	if(dep<0)
@@ -272,9 +454,7 @@ void button(int x,int y,int x2,int y2,int dep=0)
 	{
 		setcolor(8);
 		for(int i=dep;i>=1;i--)
-		{
 			bar3d(x,y,x2+i,y2+i,0,0);
-		}
 		setcolor(col);
 		bar3d(x,y,x2,y2,0,0);
 	}
@@ -285,148 +465,11 @@ void button(int x,int y,int x2,int y2,int dep=0)
 	}
 }
 
-int checksnakeladder(int pos)
+void rembutton(int x,int y,int x2,int y2,int dep)
 {
-	for(int i=0;i<3;i++)
-	{
-		if(pos==ladder[i][0])
-		{
-			//delete pos;
-			return(i+1);
-		}
-		if(pos==snakes[i][0])
-		{
-			//delete pos;
-			return(-1*(i+1));
-		}
-	}
-	//delete pos;
-	return(0);
-}
-void gamestart()
-{
-	clrscr();
-	cleardevice();
-	int *x,*y,option=0,end=0,mx,my,i;
-	setbkcolor(7);
-	settextstyle(4,HORIZ_DIR,6);
-	setcolor(15);
-	setfillstyle(SOLID_FILL,1);
-	button(-1,textheight("S")*0.7,getmaxx()+1,textheight("S")*2.3,8);
-	setcolor(10);
-	outtextxy((getmaxx()-textwidth("Snakes & Ladders"))/2,textheight("S")*0.8,"Snakes & Ladders");
-	x=new int [2];
-	x[0]=textheight("S")*2;
-	settextstyle(0,HORIZ_DIR,1);
-	outtextxy((getmaxx()-textwidth("(V:3.0.0)"))/2,x[0],"(V:3.1.4)");
-	setcolor(14);
-	outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
-	setcolor(2);
-	settextstyle(0,HORIZ_DIR,2);
-	x[0]=(getmaxx()/2)-(textwidth("Play")/2);
-	x[1]=(getmaxx()/2)-(textwidth("options")/2);
-	y=new int[5];
-	y[0]=(getmaxy()/2)-(textheight("P")*4);
-	y[1]=(getmaxy()/2)-(textheight("P")*2);
-	y[2]=(getmaxy()/2);
-	y[3]=(getmaxy()/2)+(textheight("P")*2);
-	y[4]=(getmaxy()/2)+(textheight("P")*4);
-	outtextxy(x[0],y[0],"Play");
-	outtextxy(x[1],y[3],"Credits");
-	outtextxy(x[1],y[2],"Options");
-	outtextxy(x[0],y[1],"Help");
-	outtextxy(x[0],y[4],"Exit");
-	option=0;
-	do
-	{
-		setfillstyle(EMPTY_FILL,8);
-		button(x[1]-4,y[option]-(textheight("G")/2),x[1]+textwidth("options")+4,y[option]+(textheight("A")*1.5),1);
-		setcolor(14);
-		switch(option)
-		{
-			case 0:outtextxy(x[0],y[0],"Play");
-				break;
-			case 3:outtextxy(x[1],y[3],"Credits");
-				break;
-			case 2:outtextxy(x[1],y[2],"Options");
-				break;
-			case 1:outtextxy(x[0],y[1],"Help");
-				break;
-			case 4:outtextxy(x[0],y[4],"Exit");
-				break;
-		}
-		end=getch();
-		rembutton(x[1]-4,y[option]-(textheight("G")/2),x[1]+textwidth("options")+4,y[option]+(textheight("A")*1.5),1);
-		setcolor(2);
-		switch(option)
-		{
-			case 0:outtextxy(x[0],y[0],"Play\0");
-				break;
-			case 3:outtextxy(x[1],y[3],"Credits\0");
-				break;
-			case 2:outtextxy(x[1],y[2],"Options\0");
-				break;
-			case 1:outtextxy(x[0],y[1],"Help\0");
-				break;
-			case 4:outtextxy(x[0],y[4],"Exit\0");
-				break;
-		}
-		switch(end)
-		{
-			case 0:end=getch();
-				if(end==80)
-				{	option++;
-					if(option>4)
-						option=0;
-				}
-				else if(end==72)
-				{
-					option--;
-					if(option<0)
-						option=4;
-				}
-				break;
-		}
-	}while(end!=13&&end!='5');
-	button(x[1]-4,y[option]-(textheight("G")/2),x[1]+textwidth("options")+4,y[option]+(textheight("A")*1.4),-1);
-	setcolor(14);
-	switch(option)
-	{
-		case 0:outtextxy(x[0],y[0],"Play");
-			break;
-		case 3:outtextxy(x[1],y[3],"Credits");
-			break;
-		case 2:outtextxy(x[1],y[2],"Options");
-			break;
-		case 1:outtextxy(x[0],y[1],"Help");
-			break;
-		case 4:outtextxy(x[0],y[4],"Exit");
-			break;
-	}
-	delay(250);
-	delete x;
-	delete y;
-	switch(option)
-	{
-		case 0: clrscr();
-			cleardevice();
-			if(!gameinput(0))
-				break;
-			if(!gameinput(1))
-				break;
-			delay(750);
-			gamedisp(0,0,0);
-			break;
-		case 1: help();
-			break;
-		case 2: options();
-			break;
-		case 3: credits();
-			break;
-		case 4: closegraph();
-			exit(0);
-	}
-
+	setfillstyle(EMPTY_FILL,0);
+	setcolor(getbkcolor());
+	bar3d(x,y,x2+dep,y2+dep,0,0);
 }
 
 int gameinput(int pnumber)
@@ -434,9 +477,6 @@ int gameinput(int pnumber)
 	int *poly,i=0;
 	char ch;
 	poly=new int[3];
-	settextstyle(0,HORIZ_DIR,1);
-	setcolor(14);
-	outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
 	setfillstyle(SOLID_FILL,2);
 	settextstyle(0,HORIZ_DIR,3);
 	if(!pnumber)
@@ -450,6 +490,7 @@ int gameinput(int pnumber)
 		poly[1]=(getmaxy()/2)-(textheight("A")*2.4);
 		poly[2]=(getmaxx()+textwidth("ABCDEFGHI"))/2;
 		poly[3]=(getmaxy()/2)-(textheight("A"));
+		settextstyle(1,HORIZ_DIR,6);
 	}
 	else
 	{
@@ -464,7 +505,7 @@ int gameinput(int pnumber)
 	{
 		setcolor(14);
 		bar3d(poly[0],poly[1],poly[2],poly[3],0,0);
-		if(p[pnumber].plname[0]==NULL)
+		if(G.p[pnumber].name[0]==NULL)
 		{
 			setcolor(7);
 			settextstyle(0,HORIZ_DIR,1);
@@ -477,40 +518,38 @@ int gameinput(int pnumber)
 		{
 			setcolor(getbkcolor());
 			settextstyle(0,HORIZ_DIR,3);
-			outtextxy(poly[0]+(poly[2]-poly[0]-textwidth(p[pnumber].plname))/2,(poly[1]+(textheight("A")*0.2)),p[pnumber].plname);
+			outtextxy(poly[0]+(poly[2]-poly[0]-textwidth(G.p[pnumber].name))/2,(poly[1]+(textheight("A")*0.2)),G.p[pnumber].name);
 		}
 		ch=getch();
 		switch(ch)
 		{
-			case 8: if(i>0)
+			case 8: 
+				if(i>0)
 				{
-					i--;i--;
-					p[pnumber].plname[i+1]=NULL;
+					i-=2;
+					G.p[pnumber].name[i+1]=NULL;
 				}
 				break;
-			case 13:if(0<i&&i<8)
-				{
-					p[pnumber].plname[i]=NULL;
-					i=8;
-				}
+			case 13:
+				if(0<i&&i<8)
+					G.p[pnumber].name[i]=NULL;
 				else if(i==0)
 				{
 					if(pnumber)
-						strcpy(p[pnumber].plname,"Player 2");
+						strcpy(G.p[pnumber].name,"Player 2");
 					else
-						strcpy(p[pnumber].plname,"Player 1");
-					i=8;
+						strcpy(G.p[pnumber].name,"Player 1");
 				}
 				setcolor(14);
 				setfillstyle(SOLID_FILL,2);
 				bar3d(poly[0],poly[1],poly[2],poly[3],0,0);
 				settextstyle(0,HORIZ_DIR,3);
-				outtextxy(poly[0]+(poly[2]-poly[0]-textwidth(p[pnumber].plname))/2,(poly[1]+(textheight("A")*0.2)),p[pnumber].plname);
+				outtextxy(poly[0]+(poly[2]-poly[0]-textwidth(G.p[pnumber].name))/2,(poly[1]+(textheight("A")*0.2)),G.p[pnumber].name);
 				break;
 			default:if(i<8)
 				{
-					p[pnumber].plname[i]=ch;
-					p[pnumber].plname[i+1]=NULL;
+					G.p[pnumber].name[i]=ch;
+					G.p[pnumber].name[i+1]=NULL;
 				}
 				break;
 		}
@@ -518,52 +557,112 @@ int gameinput(int pnumber)
 			i++;
 	}while(ch!=13);
 	delete poly;
-	if(!strcmpi(p[pnumber].plname,"end"))
-	{
+	if(!strcmpi(G.p[pnumber].name,"end"))
 		return(0);
-	}
-	       return(1);
-
+	return(1);
 }
 
-void help()
+void play()
 {
-	clrscr();
-	cleardevice();
-	settextstyle(0,HORIZ_DIR,1);
-	setcolor(14);
-	outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
-	settextstyle(0,HORIZ_DIR,3);
-	setcolor(14);
-	outtextxy((getmaxx()-textwidth("You need help?"))/2,(getmaxy()/2)-textheight("A")*2,"You need help?");
-	outtextxy((getmaxx()-textwidth("Ask some kid for that :P"))/2,(getmaxy()/2),"Ask some kid for that :P");
-	getch();
+    int flag=0,i,roll,j=0,ch,no,pn,x[2]={3,getmaxx()},y=424;
+    fstream autosv("temp.dat",ios::binary|ios::out);
+    autosv.write((char*)&j,sizeof(j));
+    autosv.close();
+    char ans,ans1;
+    randomize();
+    gamedisp();
+    G.p[1].update(0);
+    G.p[0].update(0);
+    for(i=G.tomove;flag==0;i++)
+    {
+	pn=i%2;
+		G.tomove=pn;
+		setcolor(WHITE);
+		if(pn==0)
+			outtextxy(x[pn],y,"Do you want to roll die? ");
+		else
+			outtextxy(x[pn]-textwidth("do you want to roll die?vvvv"),y,"Do you want to roll die?");
+		ans=getch();
+		switch (ans)
+		{
+		    case 'y':
+		    case 'Y':
+				if (pn==1)
+					outtextxy(x[pn]+textwidth("Do you want to roll die? "),y,"Yes");
+				else
+					outtextxy(x[pn]-textwidth("Doy"),y,"Yes");
+				    do{
+						roll=random(7);
+				    }while(roll==0);
+				if(G.p[pn].update(roll)==1)
+					i--;
+				if(G.p[pn].getpos()==100)
+					flag=pn+1;
+				autosv.open("temp.dat",ios::binary|ios::out);
+				autosv.seekp(sizeof(j),ios::beg);
+				autosv.write((char*)&G,sizeof(G));
+				autosv.close();
+				break;
+		    case 'n':
+		    case 'N':
+				if (pn==0)
+				{
+					outtextxy(x[pn]+textwidth("Do you want to roll die? "),y,"No");
+					setcolor(RED);
+					outtextxy(x[pn],y+12,"Do you want to save before exit?");
+				}
+				else
+				{
+					outtextxy(x[pn]-textwidth("Doy"),y,"No");
+					setcolor(RED);
+					outtextxy(x[pn]-textwidth("Do you want to save before exit?vvvvvvv"),y+12,"Do you want to save before exit?");
+				}
+			    ans1=getch();
+			    switch(ans1)
+			    {
+					case 'y':
+					case 'Y':
+						if(pn==0)
+						outtextxy(x[pn]+textwidth("Do you want to save before exit?"),y+12,"Yes");
+						else
+						outtextxy(x[pn]-textwidth("Doyouw"),y+12,"Yes");
+						save();
+						flag=(-1*(pn+1));
+						break;
+					case 'n':
+					case 'N':
+						if(pn==0)
+						outtextxy(x[pn]+textwidth("Do you want to save before exit?"),y+12,"No");
+						else
+						outtextxy(x[pn]-textwidth("Doyouw"),y+12,"No");
+						flag=(-1*(pn+1));
+						break;
+					case 'C':
+					case 'c':
+						if(pn==0)
+						outtextxy(x[pn]+textwidth("Do you want to save before exit?"),y+12,"Cancel");
+						else
+						outtextxy(x[pn]-textwidth("Doyouw"),y+12,"Cancel");
+					default:G.p[pn].update(0);
+						i--;
+				}
+			    setcolor(WHITE);
+			    delay(750);
+			    break;
+		    default:G.p[pn].update(0);
+			    i--;
+		}
+    }
+    j=1;
+    remove("temp.dat");
+    autosv.open("temp.dat",ios::binary|ios::out);
+    //autosv.seekp(0,ios::beg);
+    autosv.write((char*)&j,sizeof(j));
+    autosv.close();
+    gameend(flag);
 }
 
-void options()
-{
-	clrscr();
-	cleardevice();
-	settextstyle(0,HORIZ_DIR,3);
-	setcolor(14);
-	outtextxy((getmaxx()-textwidth("UNDER CONSTRUCTION :("))/2,(getmaxy()/2),"UNDER CONSTRUCTION :(");
-	getch();
-}
-
-void credits()
-{
-	clrscr();
-	cleardevice();
-	settextstyle(0,HORIZ_DIR,1);
-	setcolor(14);
-	outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
-	settextstyle(0,HORIZ_DIR,3);
-	setcolor(14);
-	outtextxy((getmaxx()-textwidth("UNDER CONSTRUCTION :("))/2,(getmaxy()/2),"UNDER CONSTRUCTION :(");
-	getch();
-}
-
-void gamedisp(int mode=0,int sval=0,int eval=0)
+void gamedisp(int mode,int sval,int eval,int anm)
 {
 	int x=160,y=40,xi=32,yi=xi,sl,i;
 	char ch[3];
@@ -572,8 +671,6 @@ void gamedisp(int mode=0,int sval=0,int eval=0)
 		clrscr();
 		cleardevice();
 		settextstyle(0,HORIZ_DIR,1);
-		setcolor(14);
-		outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
 		setcolor(15);
 		line(0,20,640,20);
 		line(130,20,130,390);
@@ -581,36 +678,35 @@ void gamedisp(int mode=0,int sval=0,int eval=0)
 		line(130,390,510,390);
 		line(0,340,130,340);
 		line(510,340,640,340);
-		line(320,390,320,466);
-		setcolor(2);
-		setfillstyle(SOLID_FILL,9);
+		line(320,390,320,480);
+		setcolor(GREEN);
+		setfillstyle(SOLID_FILL,LIGHTBLUE);
 		bar3d(x-10,y-10,x+330,y+330,0,0);
 		ch[2]=NULL;
 		x=170;y=340;
-		//makeladder();
-		//makesnake();
 		settextstyle(0,HORIZ_DIR,1);
 		for(i=1;i<101;i++)
 		{
 			setfillstyle(SOLID_FILL,15);
 			setcolor(getbkcolor());
 			bar3d(x-10,y+20,x+22,y-12,0,0);
-			sl=checksnakeladder(i);
-			if(sl>0)
+			if(chcklad(i)>0)
 				setcolor(2);
-			else if(sl<0)
+			else if(chcksnk(i)<0)
 				setcolor(RED);
 			else
 				setcolor(0);
 			if(i==100)
 				outtextxy(x-4,y,"100");
 			else
-			{	ch[0]=i/10+48;
+			{	
+				ch[0]=i/10+48;
 				ch[1]=i%10+48;
 				outtextxy(x,y,ch);
 			}
 			if(i%10==0)
-			{       x+=xi;
+			{   
+				x+=xi;
 				xi=xi*-1;
 				y=y-yi;
 			}
@@ -621,311 +717,320 @@ void gamedisp(int mode=0,int sval=0,int eval=0)
 				getch();
 		}
 		setcolor(YELLOW);
-       //	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,1);
 		outtextxy(2,textheight("C"),"Currently Winning: ");
-		outtextxy(2,75,"Ladders are at:");
-		outtextxy(2,175,"Snakes are at:");
+		outtextxy(2,125,"Ladders are at:");
+		outtextxy(517,125,"Snakes are at:");
 		settextstyle(DEFAULT_FONT,HORIZ_DIR,2);
-		setcolor(p[0].color);
-		outtextxy(2,350,p[0].plname);
-		setcolor(p[1].color);
-		outtextxy(getmaxx()-textwidth(p[1].plname),350,p[1].plname);
+		setcolor(G.p[0].col);
+		outtextxy(2,350,G.p[0].name);
+		setcolor(G.p[1].col);
+		outtextxy(getmaxx()-textwidth(G.p[1].name),350,G.p[1].name);
 		settextstyle(DEFAULT_FONT,HORIZ_DIR,1);
-		y=7,x=2;
+		y=10;x=2;
 		for(i=0;i<3;i++,y++)
 		{
 			gotoxy(x,y);
-			cout<<i+1<<") "<<ladder[i][0]<<"-"<<ladder[i][1];
+			cout<<i+1<<") "<<lad[i][0]<<"-"<<lad[i][1];
 		}
-		y=13;
+		y=10;x=66;
 		for(i=0;i<3;i++,y++)
 		{
 			gotoxy(x,y);
-			cout<<i+1<<") "<<snakes[i][0]<<"-"<<snakes[i][1];
+			cout<<i+1<<") "<<snake[i][0]<<"-"<<snake[i][1];
 		}
-		gameplay();
 	}
 	else
 	{
-		sound(250);
-		delay(250);
-		nosound();
-		x=170;y=340;
-		ch[2]=NULL;
-		setcolor(getbkcolor());
-		settextstyle(0,HORIZ_DIR,1);
-		for(i=1;i<101;i++)
+		if(anm==1)
 		{
-			if(i>=sval&&i<=eval)
+			x=170;y=340;
+			ch[2]=NULL;
+			setcolor(getbkcolor());
+			settextstyle(0,HORIZ_DIR,1);
+			for(i=1;i<101;i++)
 			{
-				setcolor(15);
-				setfillstyle(SOLID_FILL,p[mode-1].color);
-				bar(x-9,y+19,x+21,y-11);
-				if(i==100)
-					outtextxy(x-4,y,"100");
-				else
-				{	ch[0]=i/10+48;
-					ch[1]=i%10+48;
-					outtextxy(x,y,ch);
-				}
-				if(!kbhit())
-					delay(200);
-				if(i!=eval)
+				if(i>=sval&&i<=eval)
 				{
-					setfillstyle(SOLID_FILL,15);
-					sl=checksnakeladder(i);
-					if(sl>0)
-						setcolor(2);
-					else if(sl<0)
-						setcolor(RED);
-					else if(p[!(mode-1)].getpos()==i)
-					{
-						//setcolor(getbkcolor());
-						setfillstyle(SOLID_FILL,p[!(mode-1)].color);
-					}
-					else
-					       setcolor(getbkcolor());
+					setcolor(15);
+					setfillstyle(SOLID_FILL,G.p[mode-1].col);
 					bar(x-9,y+19,x+21,y-11);
 					if(i==100)
 						outtextxy(x-4,y,"100");
 					else
+					{
+						ch[0]=i/10+48;
+						ch[1]=i%10+48;
 						outtextxy(x,y,ch);
+					}
+					if(!kbhit())
+						delay(200);
+					if(i!=eval)
+					{
+						setfillstyle(SOLID_FILL,15);
+						if(chcklad(i)>0)
+							setcolor(2);
+						else if(chcksnk(i)<0)
+							setcolor(RED);
+						else if(G.p[!(mode-1)].getpos()==i)
+							setfillstyle(SOLID_FILL,G.p[!(mode-1)].col);
+						else
+						       setcolor(getbkcolor());
+						bar(x-9,y+19,x+21,y-11);
+						if(i==100)
+							outtextxy(x-4,y,"100");
+						else
+							outtextxy(x,y,ch);
+					}
 				}
-			}
-			if(i%10==0)
-			{       x+=xi;
-				xi=xi*-1;
-				y=y-yi;
-			}
-			x+=xi;
-		}
-		if(kbhit())
-			getch();
-	}
-}
-/*
-void makeladder()
-{
-	int i;
-	for(i=0;i<3;i++)
-	{
-		if(i==0)
-		{
-			do{
-				ladder[i][0]=random(60);
-				ladder[i][1]=random(96);
-			}while(ladder[i][0]<5||(ladder[i][1]<=(ladder[i][0]+(10-ladder[i][0]%10))));
-		}
-		else
-		{
-			do{
-			ladder[i][0]=random(60);
-			ladder[i][1]=random(96);
-			}while(ladder[i][1]<=ladder[i][0]+(10-ladder[i][0]%10)||ladder[i][0]==ladder[i-1][0]||ladder[i][1]==ladder[i-1][1]);
-		}
-	}
-}
-
-void makesnake()
-{
-	int i;
-	for (i=0;i<3;i++)
-	{
-		if(i==0)
-		{
-			do
-			{
-				snakes[i][0]=random(100);
-				snakes[i][1]=random(70);
-			}while(snakes[i][0]<=snakes[i][1]||snakes[i][1]<5);
-		}
-		else
-		{
-			do
-			{
-				snakes[i][0]=random(96);
-				snakes[i][1]=random(70);
-			}while(snakes[i][0]<=snakes[i][1]||snakes[i][1]<5||snakes[i][0]==snakes[i-1][0]||snakes[i][1]==snakes[i-1][1]);
-		}
-	}
-
-}
-*/
-void gameplay()
-{
-	char ans[2],ans2='y';
-	ans[1]=NULL;
-	int i,pn,y=400,*poly,x[2]={3,640},no=1,j,pos;
-	setfillstyle(SOLID_FILL,0);
-	poly=new int[3];
-	for(i=0;i>=0;i++)
-	{
-		pn=i%2;
-		setcolor(getbkcolor());
-		setfillstyle(SOLID_FILL,getbkcolor());
-		if(no)
-		{
-			if(!pn)
-			{
-				poly[0]=370;
-				poly[4]=x[!pn];
-			}
-			else
-			{
-				poly[0]=269;
-				poly[4]=x[!pn];
-			}
-			poly[1]=391;
-			poly[2]=poly[0];
-			poly[3]=480;
-			poly[5]=poly[3];
-			poly[6]=poly[4];
-			poly[7]=poly[1];
-			poly[8]=poly[0];
-			poly[9]=poly[1];
-			fillpoly(5,poly);
-		}
-		else
-		{
-			no=1;
-			if(pn)
-			{
-				poly[0]=370;
-				poly[4]=x[pn];
-			}
-			else
-			{
-				poly[0]=269;
-				poly[4]=x[pn];
-			}
-			poly[1]=391;
-			poly[2]=poly[0];
-			poly[3]=480;
-			poly[5]=poly[3];
-			poly[6]=poly[4];
-			poly[7]=poly[1];
-			poly[8]=poly[0];
-			poly[9]=poly[1];
-			fillpoly(5,poly);
-		}
-		setcolor(15);
-		p[!pn].disp(x[!pn],y);
-		p[pn].disp(x[pn],y);
-		setcolor(getbkcolor());
-		poly[0]=2+textwidth("Currently winning: ");
-		poly[1]=0;
-		poly[2]=poly[0];
-		poly[3]=19;
-		poly[4]=poly[0]+textwidth("ABCDEFGHIJ");
-		poly[5]=poly[3];
-		poly[6]=poly[4];
-		poly[7]=poly[1];
-		poly[8]=poly[0];
-		poly[9]=poly[1];
-		fillpoly(5,poly);
-		setcolor(15);
-		if(p[0].getpos()>p[1].getpos())
-		{
-			outtextxy(2+textwidth("Currently Winning: "),8,p[0].plname);
-			if(p[0].getpos()>=100)
-			{
-				delay(1000);
-				gameend(0,0);
-				break;
-			}
-		}
-		else if (p[0].getpos()<p[1].getpos())
-		{
-			outtextxy(5+textwidth("Currently Winning: "),8,p[1].plname);
-			if(p[1].getpos()>=100)
-			{
-				delay(1000);
-				gameend(0,1);
-				break;
-			}
-		}
-		else if(i!=0)
-			outtextxy(5+textwidth("Currently Winning: "),8,"Its a TIE!");
-		if(pn)
-		{
-			outtextxy(x[pn]-textwidth("Shall we roll the dice? "),y+24,"Shall we roll the dice?");
-			ans[0]=getch();
-			outtextxy(x[pn]-textwidth(ans),y+24,ans);
-		}
-		else
-		{	outtextxy(x[pn],y+24,"Shall we roll the dice?");
-			ans[0]=getch();
-			outtextxy(x[pn]+1+textwidth("Shall we roll the dice?"),y+24,ans);
-		}
-		if(ans[0]=='y'||ans[0]=='Y')
-		{
-			pos=p[pn].getpos();
-			do
-			{
-				no=p[pn].update(random(7));
-				if(no==0)
+				if(i%10==0)
 				{
-					i--;
+					x+=xi;
+					xi=xi*-1;
+					y=y-yi;
 				}
-			}while(no==-1);
-			gamedisp(pn+1,pos,p[pn].getpos());
+				x+=xi;
+			}
+			if(kbhit())
+				getch();
 		}
 		else
 		{
-			setcolor(RED);
-			if(pn)
-				outtextxy(x[pn]-textwidth("DO YOU REALLY WANT TO EXIT? ")-textwidth("Y"),y+36,"DO YOU REALLY WANT TO EXIT? ");
-			else
-				outtextxy(x[pn],y+36,"DO YOU REALLY WANT TO EXIT? ");
-			ans2=getch();
-			if(ans2=='y'||ans2=='Y')
-			{	gameend(1,pn);
-				break;
-			}
-			else
-			{
-				i--;
-				no--;
-			}
-			setcolor(15);
+			delay(250);
+			x=170;y=340;
+		    if((sval/10)%2==0)
+				x+=(32*(sval%10-1));
+		    else
+				x+=(32*(10-(sval%10)));
+		    y-=(32*(sval/10));
+		    setfillstyle(SOLID_FILL,15);
+		    if(chcklad(sval)>0)
+				setcolor(2);
+		    else if(chcksnk(sval)<0)
+				setcolor(RED);
+		    else if(G.p[!(mode-1)].getpos()==i)
+				setfillstyle(SOLID_FILL,G.p[!(mode-1)].col);
+		    else
+				setcolor(getbkcolor());
+		    bar(x-9,y+19,x+21,y-11);
+		    if(sval==100)
+				outtextxy(x-4,y,"100");
+		    else
+		    {
+			ch[0]=sval/10+48;
+				ch[1]=sval%10+48;
+				outtextxy(x,y,ch);
+		    }
+			x=170;y=340;
+		    if((eval/10)%2==0)
+				x+=(32*(eval%10-1));
+		    else
+				x+=(32*(10-(eval%10)));
+		    y-=(yi*(eval/10));
+		    setcolor(15);
+		    setfillstyle(SOLID_FILL,G.p[mode-1].col);
+		    bar(x-9,y+19,x+21,y-11);
+		    if(i==100)
+				outtextxy(x-4,y,"100");
+		    else
+		    {
+			ch[0]=eval/10+48;
+				ch[1]=eval%10+48;
+				outtextxy(x,y,ch);
+		    }
 		}
-		delay(200);
 	}
-	delete poly;
 }
 
-void gameend(int mode,int pl)
+void help()
 {
 	clrscr();
 	cleardevice();
-	settextstyle(0,HORIZ_DIR,1);
+	settextstyle(0,HORIZ_DIR,3);
 	setcolor(14);
-	outtextxy((getmaxx()-textwidth("MaddyB Corp."))/2,getmaxy()-textheight("A"),"MaddyB Corp.");
-	int i=0;
-	switch(mode)
+	outtextxy((getmaxx()-textwidth("You need help?"))/2,(getmaxy()/2)-textheight("A")*2,"You need help?");
+	outtextxy((getmaxx()-textwidth("Ask some kid for that "))/2,(getmaxy()/2),"Ask some kid for that!");
+	getch();
+}
+
+void credits()
+{
+	clrscr();
+	cleardevice();
+	settextstyle(0,HORIZ_DIR,3);
+	int x=(getmaxx()-textwidth("ishita jindal"))/2;
+	setcolor(2);
+	outtextxy(x,(getmaxy()/2)-(textheight("A")*1.5),"Made By:");
+	setcolor(14);
+	outtextxy(x,(getmaxy()/2)+textheight("A"),"Ishita Jindal");
+	outtextxy(x,(getmaxy()/2),"Madhav Baveja");
+	getch();
+}
+
+void save()
+{
+	fstream sv;
+	if(G.owr==-1)
 	{
-		case 1: cout<<"'"<<p[pl].plname<<"' ended the game.";
-			do
-			{
-				if(i%2)
-					setbkcolor(LIGHTRED);
-				else
-					setbkcolor(BLUE);
-				i++;
-				delay(500);
-			}while(!kbhit());
-			break;
-		case 0: cout<<"Game Ended\n'"<<p[pl].plname<<"' Won!";
-			do
-			{
-				if(i%10==0)
-					i++;
-				setbkcolor(i%10);
-				i++;
-				delay(500);
-			}while(!kbhit());
-			break;
+		sv.open("games.dat",ios::binary|ios::app);
+		sv.seekp(ios::end);
+		G.owr=sv.tellp();
+		sv.write((char*)&G,sizeof(G));
 	}
-	cout<<"\n\nPress any key to continue...";
+	else
+	{
+		sv.open("games.dat",ios::binary|ios::out);
+		sv.seekp(G.owr,ios::beg);
+		sv.write((char*)&G,sizeof(G));
+	}
+	sv.close();
+}
+
+int load()
+{
+	fstream ld("games.dat",ios::binary|ios::in);
+	int i=1,ans,y,x=20;
+	char num[2];
+	num[1]=NULL;
+	GAME g;
+	clrscr();
+	cleardevice();
+	settextstyle(1,HORIZ_DIR,6);
+	setcolor(10);
+	outtextxy((getmaxx()-textwidth("Choose Game:  "))/2,textheight("S")*0.8,"Choose Game:");
+	y=textheight("S")*2.6;
+	setcolor(YELLOW);
+	settextstyle(0,HORIZ_DIR,2);
+	while(!ld.eof())
+	{
+		num[0]=i+48;
+		ld.read((char*)&g,sizeof(g));
+		if(!ld.eof())
+		{
+			outtextxy(x,y+(i*textheight("A")),num);
+			outtextxy(getmaxx()/2-textwidth("v ")-textwidth(g.p[0].name),y+(i*textheight("A")),g.p[0].name);
+			outtextxy(getmaxx()/2-textwidth("v"),y+(i*textheight("A")),"vs");
+			outtextxy(getmaxx()/2+textwidth("v "),y+(i*textheight("A")),g.p[1].name);
+			cout<<endl;
+			i++;
+		}
+	}
+	ld.close();
+	settextstyle(1,HORIZ_DIR,6);
+	num[0]=NULL;
+	ans=0;
+	do{
+		num[0]=getch();
+		switch(num[0])
+		{
+			case 13:break;
+			case 8: num[0]=NULL;
+				ans=0;
+				setfillstyle(SOLID_FILL,getbkcolor());
+				setcolor(getbkcolor());
+				bar((getmaxx()-textwidth("Choose Game:  "))/2+textwidth("Choose Game:"),textheight("S")*0.8,(getmaxx()-textwidth("Choose Game:  "))/2+textwidth("Choose Game:  "),textheight("S")*1.8);
+				break;
+			default:
+				if(ans==0){
+					setcolor(10);
+					ans=(int)num[0]-48;
+					outtextxy((getmaxx()-textwidth("Choose Game:  "))/2+textwidth("Choose Game: "),textheight("S")*0.8,num);
+				}
+		}
+	}while(num[0]!=13);
+	ld.open("games.dat",ios::binary|ios::in);
+	ld.seekg((ans-1)*sizeof(G),ios::beg);
+	ld.read((char*)&G,sizeof(G));
+	ld.close();
+	return (ans);
+}
+
+int check()
+{
+	fstream chck("temp.dat",ios::binary|ios::in);
+	int i,opt=0,ret,x[2]={getmaxx()/2-textwidth("YESYE"),getmaxx()/2+textwidth("YE")};
+	char end;
+	chck.read((char*)&i,sizeof(i));
+	if(i==0)
+	{
+		outtextxy((getmaxx()-textwidth("Unsaved Game Recovered!"))/2,getmaxy()/2-textheight("A"),"Unsaved Game Recovered!");
+		outtextxy((getmaxx()-textwidth("Do you want to continue game?"))/2,getmaxy()/2,"Do you want to continue game?");
+		outtextxy(x[0],getmaxy()/2+(textheight("A")*1.5),"Yes");
+		setcolor(RED);
+		outtextxy(x[1],getmaxy()/2+textheight("A")*1.5,"No");
+		do{
+			setfillstyle(SOLID_FILL,CYAN);
+			setcolor(14);
+			switch(opt)
+			{
+			case 0:setcolor(WHITE);
+				button(x[opt]-4,getmaxy()/2+textheight("A")*1.4,x[opt]+4+((opt==0)?textwidth("YES"):textwidth("YE")),getmaxy()/2+(textheight("A")*2.6),0);
+				outtextxy(x[0],getmaxy()/2+(textheight("A")*1.5),"Yes");
+				break;
+			case 1:setcolor(RED);
+				button(x[opt]-4,getmaxy()/2+textheight("A")*1.4,x[opt]+4+((opt==0)?textwidth("YES"):textwidth("YE")),getmaxy()/2+(textheight("A")*2.6),0);
+				outtextxy(x[1],getmaxy()/2+(textheight("A")*1.5),"No");
+				break;
+			}
+			end=getch(); //input from keyboard
+			rembutton(x[opt]-4,getmaxy()/2+textheight("A")*1.4,x[opt]+4+((opt==0)?textwidth("YES"):textwidth("YE")),getmaxy()/2+(textheight("A")*2.6),0);
+			setcolor(2);
+			switch(opt)
+			{
+			case 0:setcolor(WHITE);
+				outtextxy(x[0],getmaxy()/2+(textheight("A")*1.5),"Yes");
+				break;
+			case 1:setcolor(RED);
+				outtextxy(x[1],getmaxy()/2+(textheight("A")*1.5),"No");
+				break;
+			}
+			switch(end)
+			{
+				case 'A':
+				case 'a':
+				case '4':(opt==0)?opt=1:opt=0;
+					break;
+				case 'd':
+				case 'D':
+				case '6':(opt==0)?opt=1:opt=0;
+						break;
+			}
+		}while(end!=13&&end!='5');
+		if(!opt)
+		{
+			chck.read((char*)&G,sizeof(G));
+			ret=1;
+		}
+		else
+			ret=0;
+	}
+	else
+		ret=0;
+	chck.close();
+	remove("temp.dat");
+	return (ret);
+}
+
+void gameend(int mode)
+{
+	if(mode>0)
+	{
+		settextstyle(1,HORIZ_DIR,6);
+		setcolor(15);
+		setfillstyle(SOLID_FILL,G.p[mode-1].col);
+		button(-1,(getmaxy()-textheight("A"))/2,getmaxx()+1,(getmaxy()+(textheight("A")*1.8))/2,5);	setcolor(10);
+		outtextxy((getmaxx()-textwidth("Winsss")-textwidth(G.p[mode-1].name))/2,(getmaxy()-textheight("A"))/2,G.p[mode-1].name);
+		outtextxy((getmaxx()-textwidth("Winsss")-textwidth(G.p[mode-1].name))/2+textwidth(G.p[mode-1].name),(getmaxy()-textheight("A"))/2," wins!");
+	}
+	else
+	{
+		mode*=-1;
+		settextstyle(1,HORIZ_DIR,5);
+		setcolor(15);
+		setfillstyle(SOLID_FILL,G.p[mode-1].col);
+		button(-1,(getmaxy()-textheight("A"))/2,getmaxx()+1,(getmaxy()+(textheight("A")*1.8))/2,5);
+		setcolor(15);
+		outtextxy((getmaxx()-textwidth("  Ended the game")-textwidth(G.p[mode-1].name))/2,(getmaxy()-textheight("A"))/2,G.p[mode-1].name);
+		outtextxy((getmaxx()-textwidth("  Ended the game")-textwidth(G.p[mode-1].name))/2+textwidth(G.p[mode-1].name),(getmaxy()-textheight("A"))/2," ended the game!");
+	}
 	getch();
 }
