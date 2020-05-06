@@ -8,23 +8,16 @@
 class player
 {
 	int position,lastroll,lad,start;
-	char plname[9];
-/*	player()
-	{	position=0;
-	}*/
+
 	public:
-	player()
-	{
-		position=0;
-		lastroll=0;
-		start=0;
-	}
+	char plname[9];
 	void reset()
 	{
 		position=0;
 		lastroll=0;
 		lad=0;
 		start=0;
+		plname[0]=NULL;
 	}
 	int update(int roll)
 	{
@@ -134,39 +127,6 @@ class player
 		}
 		delete temp;
 	}
-	int indetails()
-	{       int i=0;
-		char ch;
-		plname[8]=NULL;
-		do
-		{
-			ch=getch();
-			switch(ch)
-			{
-				case 8: i--;i--;
-					cout<<"\b \b";
-					break;
-				case 13:if(i<8)
-					{plname[i]=NULL;
-					i=8;}
-					break;
-				default:cout<<ch;
-					if(i<8)
-					plname[i]=ch;
-					break;
-			}
-			i++;
-		}while(ch!=13);
-		plname[8]=NULL;
-	       if(!strcmpi(plname,"end"))
-	       {
-			return(0);
-	       }
-	       return(1);
-	}
-	char* getname()
-	{	return(plname);
-	}
 
 };
 void gameend(int,int);
@@ -176,14 +136,18 @@ void gamedisp();
 void gamestart();
 int ladder[3][2];
 player p[2];
+int gameinput(int);
 
 void main()
 {
 	int gdriver=DETECT,gmode;
 	initgraph(&gdriver,&gmode,"");
 	randomize();
-	for(;;){
-	gamestart();
+	for(;;)
+	{
+		p[0].reset();
+		p[1].reset();
+		gamestart();
 	}
 }
 void gamestart()
@@ -197,7 +161,7 @@ void gamestart()
 	arrow[1]='>';
 	arrow[2]=NULL;
 	setbkcolor(8);
-	setcolor(YELLOW);
+	setcolor(14);
 	settextstyle(4,HORIZ_DIR,6);
 	x=new int[2];
 	y=new int[3];
@@ -217,6 +181,7 @@ void gamestart()
 	poly=new int[3];
 	poly[0]=x[1];
 	poly[2]=x[0]-1;
+	//cout<<x<<" "<<y<<" "<<arrow<<" "<<poly;
 	do
 	{
 		setcolor(3);
@@ -240,29 +205,31 @@ void gamestart()
 			case'd':
 			case'D':
 			case '6':
-				if(check==0){
-				arrow[0]='<';
-				arrow[1]='-';
-				arrow[3]=NULL;
-				x[1]+=(textwidth("->Play")+1);
-				x[0]+=textwidth("Play<-");
-				poly[0]=x[1];
-				poly[2]=x[0]+1;
-				check++;
+				if(!check)
+				{
+					arrow[0]='<';
+					arrow[1]='-';
+					arrow[3]=NULL;
+					x[1]+=(textwidth("->Play")+1);
+					x[0]+=textwidth("Play<-");
+					poly[0]=x[1];
+					poly[2]=x[0]+1;
+					check++;
 				}
 				break;
 			case'a':
 			case'A':
 			case '4':
-				if(check){
-				arrow[0]='-';
-				arrow[1]='>';
-				x[1]-=textwidth("->Play");
-				x[1]--;
-				x[0]-=textwidth("Play<-");
-				poly[0]=x[1];
-				poly[2]=x[0]-1;
-				check--;
+				if(check)
+				{
+					arrow[0]='-';
+					arrow[1]='>';
+					x[1]-=textwidth("->Play");
+					x[1]--;
+					x[0]-=textwidth("Play<-");
+					poly[0]=x[1];
+					poly[2]=x[0]-1;
+					check--;
 				}
 				break;
 		}
@@ -276,17 +243,11 @@ void gamestart()
 	{
 		case 0: clrscr();
 			cleardevice();
-			cout<<"Enter name of Player 1: ";
-			check=p[0].indetails();
-			if(!check)
+			if(!gameinput(0))
 				break;
-			cout<<"\nEnter Name of Player 2: ";
-			check=p[1].indetails();
-			if(!check)
+			if(!gameinput(1))
 				break;
 			gamedisp();
-			p[0].reset();
-			p[1].reset();
 			break;
 		case 1: break;
 		case 2: closegraph();
@@ -298,11 +259,93 @@ void gamestart()
 	delete y;
 }
 
+
+int gameinput(int pnumber)
+{
+	int *poly,i=0;
+	char ch;
+	setcolor(YELLOW);
+	poly=new int[3];
+	setfillstyle(SOLID_FILL,2);
+	settextstyle(0,HORIZ_DIR,3);
+	if(!pnumber)
+	{
+		poly[0]=(getmaxx()-textwidth("ABCDEFGHI"))/2;
+		poly[1]=(getmaxy()/2)+(textheight("A"));
+		poly[2]=(getmaxx()+textwidth("ABCDEFGHI"))/2;
+		poly[3]=(getmaxy()/2)+(textheight("A")*2.4);
+		bar3d(poly[0],poly[1],poly[2],poly[3],0,0);
+		poly[0]=(getmaxx()-textwidth("ABCDEFGHI"))/2;
+		poly[1]=(getmaxy()/2)-(textheight("A")*2.4);
+		poly[2]=(getmaxx()+textwidth("ABCDEFGHI"))/2;
+		poly[3]=(getmaxy()/2)-(textheight("A"));
+	}
+	else
+	{
+		poly[0]=(getmaxx()-textwidth("ABCDEFGHI"))/2;
+		poly[1]=(getmaxy()/2)+(textheight("A"));
+		poly[2]=(getmaxx()+textwidth("ABCDEFGHI"))/2;
+		poly[3]=(getmaxy()/2)+(textheight("A")*2.4);
+
+	}
+	do
+	{
+		setcolor(14);
+		bar3d(poly[0],poly[1],poly[2],poly[3],0,0);
+		if(p[pnumber].plname[0]==NULL)
+		{
+			setcolor(7);
+			settextstyle(0,HORIZ_DIR,1);
+			if(pnumber)
+				outtextxy((getmaxx()-textwidth("Enter name of Player 1"))/2,poly[1]+(textheight("A")*1.5),"Enter name of Player 2");
+			else
+				outtextxy((getmaxx()-textwidth("Enter name of Player 1"))/2,poly[1]+(textheight("A")*1.5),"Enter name of Player 1");
+		}
+		else
+		{
+			setcolor(getbkcolor());
+			settextstyle(0,HORIZ_DIR,3);
+			outtextxy((getmaxx()-textwidth(p[pnumber].plname))/2,(poly[1]+(textheight("A")*0.2)),p[pnumber].plname);
+		}
+		ch=getch();
+		switch(ch)
+		{
+			case 8: if(i>0)
+				{
+					i--;i--;
+					p[pnumber].plname[i+1]=NULL;
+				}
+				break;
+			case 13:if(i<8&&i>0)
+				{
+					p[pnumber].plname[i]=NULL;
+					i=8;
+				}
+				break;
+			default:if(i<8)
+				{
+					p[pnumber].plname[i]=ch;
+					p[pnumber].plname[i+1]=NULL;
+				}
+				break;
+		}
+		if(i<8)
+			i++;
+	}while(ch!=13);
+	delete poly;
+	if(!strcmpi(p[pnumber].plname,"end"))
+	{
+		return(0);
+	}
+	       return(1);
+
+}
+
 void gamedisp()
 {
 	clrscr();
 	cleardevice();
-	int x=160,y=40,xi=32,yi=32,*poly,i;
+	int x=160,y=40,xi=32,yi=xi,*poly,i;
 	char ch[3];
 	setcolor(15);
 	line(0,20,640,20);
@@ -355,12 +398,12 @@ void gamedisp()
 	}
 	setcolor(YELLOW);
        //	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,1);
-	outtextxy(2,8,"Currently Winning: ");
+	outtextxy(2,textheight("C"),"Currently Winning: ");
 	outtextxy(2,75,"Ladders are at:");
 	outtextxy(2,175,"Snakes are at:");
 	settextstyle(DEFAULT_FONT,HORIZ_DIR,2);
-	outtextxy(2,350,p[0].getname());
-	outtextxy(getmaxx()-textwidth(p[1].getname()),350,p[1].getname());
+	outtextxy(2,350,p[0].plname);
+	outtextxy(getmaxx()-textwidth(p[1].plname),350,p[1].plname);
 	makeladder();
 	settextstyle(DEFAULT_FONT,HORIZ_DIR,1);
 	gameplay();
@@ -368,7 +411,7 @@ void gamedisp()
 
 void makeladder()
 {
-	int i,x=2,y=7;
+	int i,y=7,x=2;
 	for(i=0;i<3;i++)
 	{
 		if(i==0)
@@ -467,7 +510,7 @@ void gameplay()
 		setcolor(15);
 		if(p[0].getpos()>p[1].getpos())
 		{
-			outtextxy(2+textwidth("Currently Winning: "),8,p[0].getname());
+			outtextxy(2+textwidth("Currently Winning: "),8,p[0].plname);
 			if(p[0].getpos()>=100)
 			{
 				delay(1000);
@@ -477,7 +520,7 @@ void gameplay()
 		}
 		else if (p[0].getpos()<p[1].getpos())
 		{
-			outtextxy(5+textwidth("Currently Winning: "),8,p[1].getname());
+			outtextxy(5+textwidth("Currently Winning: "),8,p[1].plname);
 			if(p[1].getpos()>=100)
 			{
 				delay(1000);
@@ -539,9 +582,9 @@ void gameend(int mode,int pl)
 	cleardevice();
 	switch(mode)
 	{
-		case 1: cout<<"'"<<p[pl].getname()<<"' ended the game.";
+		case 1: cout<<"'"<<p[pl].plname<<"' ended the game.";
 			break;
-		case 0: cout<<"GAME ENDED\n'"<<p[pl].getname()<<"' WON.";
+		case 0: cout<<"GAME ENDED\n'"<<p[pl].plname<<"' WON.";
 			break;
 	}
 	cout<<"\n\nPress any key to continue...";
