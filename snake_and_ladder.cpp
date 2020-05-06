@@ -8,7 +8,7 @@
 class player
 {
 	int position, lastroll,lad;
-	char plname[8],temp[3];
+	char plname[9],temp[3];
 /*	player()
 	{	position=0;
 	}*/
@@ -115,54 +115,117 @@ class player
 
 		}}
 	}
-	void indetails()
-	{    gets(plname);
-		if(strlen(plname)>8)
-			exit(0);
-	       if(!strcmpi(plname,"exit"))
+	int indetails()
+	{
+		gets(plname)
+	       if(!strcmpi(plname,"end"))
 	       {
-			closegraph();
-			exit(0);
+			return(0);
 	       }
+	       return(1);
 	}
 	char* getname()
 	{	return(plname);
 	}
 
 };
-player p[2];
+void snake();
+void gamestart();
+void gamedisp();
+void gameplay();
+void gameend(int,int);
 int ladder[3][2];
-void snakeladder()
-{
-	int i,x=2,y=7;
-	for(i=0;i<3;i++){
-	if(i==0){
-	do{
-		ladder[i][0]=random(80);
-		ladder[i][1]=random(100);
-	}while(ladder[i][0]<0||ladder[i][1]<=ladder[i][0]+(10-ladder[i][0]%10));
-	}
-	else{
-	do{
-		do{
-		ladder[i][0]=random(80);
-		ladder[i][1]=random(100);
-		}while(ladder[i][1]<=ladder[i][0]+(10-ladder[i][0]%10));
-	}while(ladder[i][0]<=ladder[i-1][0]||ladder[i][1]==ladder[i-1][1]);
-	}}
+player p[2];
 
-	for(i=0;i<3;i++,y++)
-	{
-		gotoxy(x,y);
-		cout<<i+1<<") "<<ladder[i][0]<<"-"<<ladder[i][1];
+void main()
+{
+	int gdriver=DETECT,gmode;
+	initgraph(&gdriver,&gmode,"");
+	randomize();
+	for(;;){
+	gamestart();
 	}
 }
+void gamestart()
+{
+	clrscr();
+	cleardevice();
+	int x[2],y[3],*poly,option=0,end=0,check;
+	setbkcolor(8);
+	setcolor(YELLOW);
+	settextstyle(4,HORIZ_DIR,6);
+	x[0]=(getmaxx()/2)-(textwidth("Snakes & Ladders")/2);
+	y[0]=textheight("S");
+	outtextxy(x[0],y[0],"Snakes & Ladders");
+	setcolor(3);
+	settextstyle(0,HORIZ_DIR,2);
+	x[0]=(getmaxx()/2)-(textwidth("Play")/2);
+	x[1]=x[0]-textwidth("->");
+	y[0]=(getmaxy()/2)-(textheight("P")*2);
+	y[1]=(getmaxy()/2);
+	y[2]=(getmaxy()/2)+(textheight("P")*2);
+	outtextxy(x[0],y[0],"Play");
+	outtextxy(x[0],y[1],"Help");
+	outtextxy(x[0],y[2],"Exit");
+	poly=new int[10];
+	poly[0]=x[1];
+	poly[2]=x[0]-1;
+	poly[4]=poly[2];
+	poly[6]=poly[0];
+	poly[8]=poly[0];
+	do
+	{
+		setcolor(3);
+		outtextxy(x[1],y[option],"->");
+		end=getch();
+		setcolor(getbkcolor());
+		setfillstyle(SOLID_FILL,getbkcolor());
+		poly[1]=y[option]+textheight(">");
+		poly[3]=poly[1];
+		poly[5]=y[option];
+		poly[7]=poly[5];
+		poly[9]=poly[1];
+		fillpoly(5,poly);
+		switch(end)
+		{
+			case '2':option++;
+				break;
+			case '8':option--;
+				break;
+		}
+		if(option>2)
+			option=0;
+		else if(option<0)
+			option=2;
+	}while(end!=13);
+	delete poly;
+	switch(option)
+	{
+		case 0: clrscr();
+			cleardevice();
+			cout<<"Enter name of Player 1: ";
+			check=p[0].indetails();
+			if(!check)
+				break;
+			cout<<"\nEnter Name of Player 2: ";
+			check=p[1].indetails();
+			if(!check)
+				break;
+			gamedisp();
+			break;
+		case 1: break;
+		case 2: closegraph();
+			exit(0);
+	}
+}
+
 void gamedisp()
 {
 	clrscr();
 	cleardevice();
 	int x=160,y=40,xi=32,yi=32,*poly,i;
 	char ch[3];
+	setcolor(15);
 	line(0,20,640,20);
 	line(130,20,130,390);
 	line(510,20,510,390);
@@ -194,7 +257,7 @@ void gamedisp()
 	poly[8]=poly[0];
 	poly[9]=poly[1];
 	setfillstyle(SOLID_FILL,11);
-	setcolor(5);
+	setcolor(getbkcolor());
 	fillpoly(5,poly);
 	delete poly;
 	for(i=1;i<10;i++)
@@ -204,6 +267,7 @@ void gamedisp()
 	ch[2]=NULL;
 	x=170;y=340;
 	setcolor(getbkcolor());
+	settextstyle(0,HORIZ_DIR,1);
 	for(i=1;i<101;i++)
 	{
 		if(i==100)
@@ -229,55 +293,93 @@ void gamedisp()
 	settextstyle(DEFAULT_FONT,HORIZ_DIR,2);
 	outtextxy(5,350,p[0].getname());
 	outtextxy(640-textwidth(p[1].getname()),350,p[1].getname());
-	snakeladder();
+	snake();
 	settextstyle(DEFAULT_FONT,HORIZ_DIR,1);
+	gameplay();
 }
-void endgame(int mode,int pl)
+
+void snake()
 {
-	clrscr();
-	cleardevice();
-	switch(mode)
-	{
-		case 1: cout<<p[pl].getname()<<" ended the game.";
-			break;
-		case 0: cout<<"GAME ENDED\n"<<p[pl].getname()<<" WON.";
-			break;
+	int i,x=2,y=7;
+	for(i=0;i<3;i++){
+	if(i==0){
+	do{
+		ladder[i][0]=random(80);
+		ladder[i][1]=random(100);
+	}while(ladder[i][0]<0||ladder[i][1]<=ladder[i][0]+(10-ladder[i][0]%10));
 	}
-	cout<<"\n\nPress any key to exit.";
+	else{
+	do{
+		do{
+		ladder[i][0]=random(80);
+		ladder[i][1]=random(100);
+		}while(ladder[i][1]<=ladder[i][0]+(10-ladder[i][0]%10));
+	}while(ladder[i][0]<=ladder[i-1][0]||ladder[i][1]==ladder[i-1][1]);
+	}}
+
+	for(i=0;i<3;i++,y++)
+	{
+		gotoxy(x,y);
+		cout<<i+1<<") "<<ladder[i][0]<<"-"<<ladder[i][1];
+	}
 }
+
 void gameplay()
 {
 	char ans[2],ans2='y',*diecheck="Shall we roll the dice? ",*exitcheck="DO YOU REALLY WANT TO EXIT? ";
 	ans[1]=NULL;
-	int i,pn,y=400,*poly,x[2]={5,640};
+	int i,pn,y=400,*poly,x[2]={5,640},no=0;
 	setfillstyle(SOLID_FILL,0);
 	poly=new int[10];
 	for(i=0;i>=0;i++)
 	{
 		pn=i%2;
 		setcolor(getbkcolor());
-		poly[0]=319;
-		poly[1]=391;
-		poly[2]=poly[0];
-		poly[3]=480;
-		poly[4]=x[pn];
-		poly[5]=poly[3];
-		poly[6]=poly[4];
-		poly[7]=poly[1];
-		poly[8]=poly[0];
-		poly[9]=poly[1];
-		fillpoly(5,poly);
-		poly[0]=321;
-		poly[1]=391;
-		poly[2]=poly[0];
-		poly[3]=480;
-		poly[4]=x[pn];
-		poly[5]=poly[3];
-		poly[6]=poly[4];
-		poly[7]=poly[1];
-		poly[8]=poly[0];
-		poly[9]=poly[1];
-		fillpoly(5,poly);
+		if(!no)
+		{
+			if(!pn)
+			{
+				poly[0]=321;
+				poly[4]=x[!pn];
+			}
+			else
+			{
+				poly[0]=319;
+				poly[4]=x[!pn];
+			}
+			poly[1]=391;
+			poly[2]=poly[0];
+			poly[3]=480;
+			poly[5]=poly[3];
+			poly[6]=poly[4];
+			poly[7]=poly[1];
+			poly[8]=poly[0];
+			poly[9]=poly[1];
+			fillpoly(5,poly);
+		}
+		else
+		{
+			no=0;
+			if(pn)
+			{
+				poly[0]=321;
+				poly[4]=x[pn];
+			}
+			else
+			{
+				poly[0]=319;
+				poly[4]=x[pn];
+			}
+			poly[1]=391;
+			poly[2]=poly[0];
+			poly[3]=480;
+			poly[5]=poly[3];
+			poly[6]=poly[4];
+			poly[7]=poly[1];
+			poly[8]=poly[0];
+			poly[9]=poly[1];
+			fillpoly(5,poly);
+		}
 		setcolor(15);
 		p[!pn].disp(x[!pn],y);
 		p[pn].disp(x[pn],y);
@@ -305,18 +407,21 @@ void gameplay()
 				outtextxy(x[pn],y+36,exitcheck);
 			ans2=getch();
 			if(ans2=='y'||ans2=='Y')
-			{	endgame(1,pn);
+			{	gameend(1,pn);
 				break;
 			}
 			else
+			{
 				i--;
+				no++;
+			}
 		}
 		setcolor(getbkcolor());
 		poly[0]=5+textwidth("Currently winning: ");
 		poly[1]=0;
 		poly[2]=poly[0];
 		poly[3]=19;
-		poly[4]=poly[0]+textwidth("ABCDEFGH");
+		poly[4]=poly[0]+textwidth("ABCDEFGHIJ");
 		poly[5]=poly[3];
 		poly[6]=poly[4];
 		poly[7]=poly[1];
@@ -326,7 +431,7 @@ void gameplay()
 		setcolor(15);
 		if(p[0].getpos()>p[1].getpos())
 		{	if(p[0].getpos()>=100)
-			{	endgame(0,0);
+			{	gameend(0,0);
 				break;
 			}
 			else
@@ -334,7 +439,7 @@ void gameplay()
 		}
 		else if (p[0].getpos()<p[1].getpos())
 		{	if(p[1].getpos()>=100)
-			{	endgame(0,1);
+			{	gameend(0,1);
 				break;
 			}
 			else
@@ -349,21 +454,17 @@ void gameplay()
 	delete exitcheck;
 }
 
-
-void main()
+void gameend(int mode,int pl)
 {
 	clrscr();
-	int gdriver=DETECT,gmode;
-	initgraph(&gdriver,&gmode,"");
-	randomize();
-	cout<<"Enter name of Player 1: ";
-	p[0].indetails();
-	cout<<"Enter Name of Player 2: ";
-	p[1].indetails();
-	//setbkcolor(15);
-	gamedisp();
-	gameplay();
+	cleardevice();
+	switch(mode)
+	{
+		case 1: cout<<p[pl].getname()<<" ended the game.";
+			break;
+		case 0: cout<<"GAME ENDED\n"<<p[pl].getname()<<" WON.";
+			break;
+	}
+	cout<<"\n\nPress any key to continue...";
 	getch();
-	closegraph();
-	exit(0);
 }
