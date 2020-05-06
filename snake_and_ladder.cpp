@@ -1,11 +1,10 @@
 #include<iostream.h>
 #include<conio.h>
 #include<stdlib.h>
-#include<graphics.h>
 #include<dos.h>
 class player
 {
-	int position, lastroll;
+	int position, lastroll,lad;
 /*	player()
 	{	position=0;
 	}*/
@@ -18,36 +17,120 @@ class player
 			return(0);
 		else
 		{
-			position+=roll;
 			lastroll=roll;
-			return(1);
+			position+=lastroll;
+			lad=checkladder(position);
+			if(lad!=0)
+			{switch(lad){
+			default:
+				position=ladder[lad-1][1];
+				}}
+
+		return(1);
 		}
 	}
 	int getpos(){return(position);}
 	void disp(int x, int y)
 	{
-		gotoxy(x+6,y);
-		cout<<"You got a "<<lastroll<<".";
+		if(lad==0)
+		{	gotoxy(x+6,y);
+			cout<<"You got a "<<lastroll<<".";
+		}
+		else
+		{
+			gotoxy(x,y);
+			cout<<"You got a "<<lastroll<<" and ladder "<<lad;
+		}
 		gotoxy(x+3,y+1);
 		cout<<"You are now at "<<position<<".";
 	}
 
 };
 player p[2];
-void gamedisp()
+int ladder[3][2],snake[3][2];
+int checkladder(int pos)
+{
+	int i,j=0;
+	for(i=0;i<3;i++)
+	{
+		if(pos==ladder[i][0])
+			j=i+1;
+	}
+	return(j);
+}
+int snakeladder(int mode)
+{
+	int i,y,x;
+	if (mode==1)
+	{
+		for(i=0;i<3;i++){
+		if(i==0){
+		do{
+			ladder[i][0]=random(80);
+			ladder[i][1]=random(100);
+		}while(ladder[i][0]<0||ladder[i][1]<=ladder[i][0]+(10-ladder[i][0]%10));
+		}
+		else{
+		do{
+			do{
+			ladder[i][0]=random(80);
+			ladder[i][1]=random(100);
+			}while(ladder[i][0]<=ladder[i-1][0]||ladder[i][1]==ladder[i-1][1]);
+		}while(ladder[i][1]<=ladder[i][0]+(10-ladder[i][0]%10));
+		}}
+	}
+	else if(mode==2)
+	{
+		 do{
+			snake[3][0]=random(100);
+			snake[3][1]=random(80);
+		}while(snake[3][1]==0||snake[3][1]>=snake[3][0]-(snake[3][0]%10));
+
+	       /*	else{
+		do{
+			do{
+			snake[i][0]=random(100);
+			snake[i][1]=random(80);
+			}while(snake[i][0]>=snake[i-1][0]||snake[i][1]==snake[i-1][1]);
+		}while(snake[i][1]>=snake[i][0]+(snake[i][0]%10));
+		}}*/
+	}
+	y=wherey();x=wherex();
+	gotoxy(37,8);
+	cout<<"Snakes:";
+	for(i=0;i<3;i++)
+	{
+		gotoxy(37,wherey()+1);
+		cout<<i+1<<")"<<snake[i][0]<<"-"<<snake[i][1];
+	}
+	gotoxy(37,wherey()+2);
+	cout<<"Ladders:";
+	for(i=0;i<3;i++)
+	{
+		gotoxy(37,wherey()+1);
+		cout<<i+1<<")"<<ladder[i][0]<<"-"<<ladder[i][1];
+	}
+	gotoxy(x,y);
+	return(0);
+}
+
+void gamedisp(int mode=0)
 {
 	clrscr();
-	cleardevice();
 	gotoxy(16,1);
 	cout<<"PLAYER 1";
-	line(320,0,320,600);
 	gotoxy(57,1);
 	cout<<"PLAYER 2";
+	if (mode)
+	{	snakeladder(1);
+		snakeladder(2);
+	}
+	else
+	snakeladder(0);
 }
 void endgame(int mode=0)
 {
 	clrscr();
-	cleardevice();
 	switch(mode)
 	{
 		case 0: cout<<"Player ENDED the Game.";
@@ -139,11 +222,8 @@ void gameplay()
 
 void main()
 {
-	int gmode,gdriver=DETECT;
-	initgraph(&gdriver,&gmode,"");
-	setbkcolor(1);
 	randomize();
-	gamedisp();
+	gamedisp(1);
 	gameplay();
 	getch();
 	exit(0);
